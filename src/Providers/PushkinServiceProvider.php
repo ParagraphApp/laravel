@@ -25,8 +25,6 @@ class PushkinServiceProvider extends ServiceProvider {
         $this->app['mail.manager']->extend('pushkin', function () {
             return new Mailer();
         });
-
-        dd('dasd');
     }
 
     public function register()
