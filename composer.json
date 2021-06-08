@@ -1,0 +1,34 @@
+{
+    "name": "Pushkin/laravel",
+    "type": "library",
+    "description": "Official Laravel package for Pushkin - a more productive way to manage your texts",
+    "keywords": ["texts","templates","localization"],
+    "homepage": "https://github.com/PushkinApp/laravel",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Denis Mysenko",
+            "email": "denis@menara.com.au",
+            "homepage": "https://www.menara.com.au"
+        }
+    ],
+    "require": {
+        "php": ">=5.5.0",
+        "menarasolutions/geographer-data": "^0.1.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "4.*|5.*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Pushkin\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Pushkin\\": "src/"
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
