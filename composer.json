@@ -1,5 +1,5 @@
 {
-    "name": "Pushkin/laravel",
+    "name": "pushkin/laravel",
     "type": "library",
     "description": "Official Laravel package for Pushkin - a more productive way to manage your texts",
     "keywords": ["texts","templates","localization"],
