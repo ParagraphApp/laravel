@@ -18,7 +18,10 @@
     "autoload": {
         "psr-4": {
             "Pushkin\\": "src/"
-        }
+        },
+        "files": [
+            "helpers/helpers.php"
+        ]
     },
     "minimum-stability": "dev",
     "prefer-stable": true,
