@@ -78,9 +78,9 @@ class Reader {
      */
     protected function findSignature(array $node)
     {
-        $functionCall = array_first($node, function($child) {
+        $functionCall = array_filter($node, function($child) {
              return $child instanceof Echo_ && $child->exprs[0]->name->parts[0] == 'p';
-        });
+        })[0];
 
         $functionCall = $functionCall->exprs[0];
 
