@@ -80,8 +80,10 @@ class Reader {
     {
         $functionCall = array_filter($node, function($child) {
              return $child instanceof Echo_ && $child->exprs[0]->name->parts[0] == 'p';
-        })[0];
+        });
+        if (empty($functionCall)) return;
 
+	$functionCall = array_shift($functionCall);
         $functionCall = $functionCall->exprs[0];
 
         if (! $functionCall->args[0]->value instanceof Encapsed) {
@@ -100,11 +102,12 @@ class Reader {
      */
     protected function context(array $stack)
     {
-        $lastCall = array_first($stack, function($call) {
+        $lastCall = array_filter($stack, function($call) {
             return data_get($call, 'function') == 'buildMarkdownView';
         });
 
-        if ($lastCall) {
+        if (! empty($lastCall)) {
+	    $lastCall = array_shift($lastCall);
             return get_class($lastCall['object']);
         }
 
