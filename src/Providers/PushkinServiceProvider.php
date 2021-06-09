@@ -6,6 +6,7 @@ use Illuminate\Support\ServiceProvider;
 use Pushkin\Client;
 use Pushkin\Mailer;
 use Illuminate\Support\Facades\Blade;
+use Pushkin\SubmitTextsCommand;
 
 class PushkinServiceProvider extends ServiceProvider {
     public function boot()
@@ -25,6 +26,12 @@ class PushkinServiceProvider extends ServiceProvider {
         $this->app['mail.manager']->extend('pushkin', function () {
             return new Mailer();
         });
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                SubmitTextsCommand::class
+            ]);
+        }
     }
 
     public function register()
