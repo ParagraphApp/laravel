@@ -13,9 +13,9 @@ class Client {
     const PAGE_TYPE_WEB = 0;
     const PAGE_TYPE_EMAIL = 1;
 
-    public function __construct($projectId)
+    public function __construct()
     {
-        $this->projectId = $projectId;
+        $this->projectId = config('services.pushkin.project_id');
 
         $this->client = new Guzzle([
             'base_uri' => config('services.pushkin.api_url'),
