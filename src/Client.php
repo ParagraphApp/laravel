@@ -45,16 +45,18 @@ class Client {
      * @param $contents
      * @param $context
      * @param $type
+     * @param $name
      * @return bool
      */
-    public function submitPage($contents, $context, $type = Client::PAGE_TYPE_WEB)
+    public function submitPage($contents, $context, $type = Client::PAGE_TYPE_WEB, $name)
     {
         try {
             $response = $this->client->post("{$this->projectId}/pages", [
                 'json' => [
                     'snapshot' => $contents,
                     'context' => $context,
-                    'type' => $type
+                    'type' => $type,
+                    'name' => $name
                 ]
             ]);
 

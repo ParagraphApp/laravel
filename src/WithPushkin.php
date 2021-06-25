@@ -5,6 +5,15 @@ namespace Pushkin;
 use Illuminate\Support\Str;
 
 trait WithPushkin {
+    public $currentPageName;
+
+    public function name($name)
+    {
+        $this->currentPageName = $name;
+
+        return $this;
+    }
+
     public function submitPage($contents, $uri, $method)
     {
         // Get controller name
@@ -21,7 +30,7 @@ trait WithPushkin {
         unlink($output);
 
         // Generate inline HTML
-        $this->app[Client::class]->submitPage($contents, $context);
+        $this->app[Client::class]->submitPage($contents, $context, Client::PAGE_TYPE_WEB, $this->currentPageName);
     }
 
     /**

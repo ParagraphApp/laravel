@@ -107,7 +107,7 @@ class Reader {
         });
 
         if (! empty($lastCall)) {
-	    $lastCall = array_shift($lastCall);
+	        $lastCall = array_shift($lastCall);
             return get_class($lastCall['object']);
         }
 
