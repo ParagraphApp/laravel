@@ -19,21 +19,18 @@ class Reader {
 
     protected $storage;
 
-    protected $random;
-
     public function __construct($input)
     {
         $this->input = $input;
         $this->storage = new Storage();
-        $this->random = new Client();
     }
 
     public function translate()
     {
-        $this->findSource();
-        $id = $this->random->generateId();
-        $prefix = "<!-- ps#{$id} -->";
-        $postfix = "<!-- pe#{$id} -->";
+        $data = $this->findSource();
+
+        $prefix = "<!-- pushkin-begin " . json_encode($data) . " -->";
+        $postfix = "<!-- pushkin-end -->";
 
         return $prefix . $this->input . $postfix;
     }
@@ -70,7 +67,13 @@ class Reader {
             //return;
         }
 
-        $this->storage->log($this->input, $path, $this->context($stack), $signature ?? null, $lastCall['line']);
+        return [
+            'text' => $this->input,
+            'file' => $path,
+            'context' => $this->context($stack),
+            'signature' => $signature ?? null,
+            'location' => $lastCall['line']
+        ];
     }
 
     /*
@@ -83,7 +86,7 @@ class Reader {
         });
         if (empty($functionCall)) return;
 
-	$functionCall = array_shift($functionCall);
+	    $functionCall = array_shift($functionCall);
         $functionCall = $functionCall->exprs[0];
 
         if (! $functionCall->args[0]->value instanceof Encapsed) {

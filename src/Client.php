@@ -3,7 +3,6 @@
 namespace Pushkin;
 
 use GuzzleHttp\Client as Guzzle;
-use GuzzleHttp\Exception\RequestException;
 
 class Client {
     protected $client;
@@ -31,14 +30,11 @@ class Client {
      */
     public function submitTexts($texts)
     {
-        try {
-            $response = $this->client->post("{$this->projectId}/texts", [
-                'json' => $texts
-            ]);
+        $response = $this->client->post("{$this->projectId}/texts", [
+            'json' => $texts
+        ]);
 
-            return true;
-        } catch (RequestException $e) {
-        }
+        return true;
     }
 
     /**
@@ -50,18 +46,15 @@ class Client {
      */
     public function submitPage($contents, $context, $type = Client::PAGE_TYPE_WEB, $name)
     {
-        try {
-            $response = $this->client->post("{$this->projectId}/pages", [
-                'json' => [
-                    'snapshot' => $contents,
-                    'context' => $context,
-                    'type' => $type,
-                    'name' => $name
-                ]
-            ]);
+        $response = $this->client->post("{$this->projectId}/pages", [
+            'json' => [
+                'snapshot' => $contents,
+                'context' => $context,
+                'type' => $type,
+                'name' => $name
+            ]
+        ]);
 
-            return true;
-        } catch (RequestException $e) {
-        }
+        return true;
     }
 }
