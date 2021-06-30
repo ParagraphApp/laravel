@@ -20,16 +20,6 @@ trait WithPushkin {
         $action = $this->app['router']->getRoutes()->match(request()->create($uri, $method))->getAction();
         $context = $action['uses'];
 
-        $input = "/tmp/" . Str::random(126);
-        $output = "/tmp/" . Str::random(126);
-
-        file_put_contents($input, $contents);
-        exec("python3.8 " . resource_path('tools/web.py') . " {$input} > {$output} 2>/dev/null");
-        $contents = file_get_contents($output);
-        unlink($input);
-        unlink($output);
-
-        // Generate inline HTML
         $this->app[Client::class]->submitPage($contents, $context, Client::PAGE_TYPE_WEB, $this->currentPageName);
     }
 
