@@ -7,6 +7,6 @@ if (! function_exists('p')) {
      */
     function p($input)
     {
-        return (new Pushkin\Reader($input))->translate();
+        return resolve(\Pushkin\TranslatorContract::class, compact('input'))->translate();
     }
 }
