@@ -25,6 +25,22 @@ class Client {
     }
 
     /**
+     * @param string $locale
+     * @return array
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
+    public function downloadTranslations($locale = null)
+    {
+        $response = $this->client->get("{$this->projectId}/translations", [
+            'query' => array_filter([
+                'locale' => $locale
+            ])
+        ]);
+
+        return json_decode($response->getBody(), true);
+    }
+
+    /**
      * @param $texts
      * @return bool
      */

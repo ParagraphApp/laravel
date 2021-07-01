@@ -38,4 +38,11 @@ trait WithPushkin {
 
         return $response;
     }
+
+    public function setUp(): void
+    {
+        parent::setUp();
+        config(['app.url' => '']);
+        app()->bind(TranslatorContract::class, Reader::class);
+    }
 }

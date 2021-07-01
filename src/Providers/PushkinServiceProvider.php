@@ -6,11 +6,15 @@ use Illuminate\Support\ServiceProvider;
 use Pushkin\Client;
 use Pushkin\Mailer;
 use Illuminate\Support\Facades\Blade;
-use Pushkin\SubmitTextsCommand;
+use Pushkin\DownloadTranslationsCommand;
+use Pushkin\Translator;
+use Pushkin\TranslatorContract;
 
 class PushkinServiceProvider extends ServiceProvider {
     public function boot()
     {
+        $this->app->bind(TranslatorContract::class, Translator::class);
+
         Blade::directive('p', function($expression) {
             if (! $expression) {
                 return "<?php ob_start(); ?>";
@@ -29,7 +33,7 @@ class PushkinServiceProvider extends ServiceProvider {
 
         if ($this->app->runningInConsole()) {
             $this->commands([
-                SubmitTextsCommand::class
+                DownloadTranslationsCommand::class
             ]);
         }
     }
