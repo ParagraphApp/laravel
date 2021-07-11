@@ -3,9 +3,12 @@
 namespace Pushkin;
 
 use Illuminate\Support\Str;
+use Pushkin\Exceptions\FailedRequestException;
 
 trait WithPushkin {
     public $currentPageName;
+
+    public static $responseFragmentLength = 512;
 
     public function name($name)
     {
@@ -32,9 +35,12 @@ trait WithPushkin {
     {
         $response = parent::get($uri, $headers);
 
-        if ($response->isOk()) {
-            $this->submitPage($response->getContent(), $uri, 'GET');
+        if (! $response->isOk()) {
+            $fragment = substr($response->getContent(), 0, static::$responseFragmentLength);
+            throw new FailedRequestException("Failed web request, code: {$response->getStatusCode()}, contents: {$fragment}");
         }
+
+        $this->submitPage($response->getContent(), $uri, 'GET');
 
         return $response;
     }

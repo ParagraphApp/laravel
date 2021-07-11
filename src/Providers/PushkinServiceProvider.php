@@ -17,14 +17,14 @@ class PushkinServiceProvider extends ServiceProvider {
 
         Blade::directive('p', function($expression) {
             if (! $expression) {
-                return "<?php ob_start(); ?>";
+                return "<?php \$pushkinStartLine = __LINE__; ob_start(); ?>";
             }
 
-            return "<?php echo p($expression); ?>";
+            return "<?php echo p($expression, __LINE__); ?>";
         });
 
         Blade::directive('endp', function() {
-            return "<?php echo p(ob_get_clean()); ?>";
+            return "<?php echo p(ob_get_clean(), \$pushkinStartLine, __LINE__); ?>";
         });
 
         $this->app['mail.manager']->extend('pushkin', function () {

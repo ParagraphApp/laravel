@@ -14,10 +14,16 @@ abstract class BaseTranslator {
 
     protected $storage;
 
-    public function __construct($input)
+    protected $startLine;
+
+    protected $endLine;
+
+    public function __construct($input, $startLine, $endLine)
     {
         $this->input = $input;
         $this->storage = new Storage();
+        $this->startLine = $startLine;
+        $this->endLine = $endLine;
     }
 
     protected function findSource()
@@ -39,14 +45,17 @@ abstract class BaseTranslator {
             $path = str_replace(base_path(), '', $lastCall['file']);
         }
 
-        $this->source = $this->readLine($lastCall['file'], $lastCall['line']);
+        $this->source = $this->readLine($lastCall['file'], $this->startLine ?: $lastCall['line'], $this->endLine ? $this->endLine - $this->startLine : 1);
 
         $parser = (new ParserFactory)->create(ParserFactory::PREFER_PHP7);
 
         try {
             $prefix = preg_match('/<\?php/', $this->source) ? "" : "<?php\n";
             $ast = $parser->parse($prefix.$this->source);
-            $signature = $this->findSignature($ast);
+            if (preg_match('/entries/', $this->input)) {
+                dd($ast);
+                $signature = $this->findSignature($ast);
+            }
         } catch (Error $error) {
             //echo "Parse error: {$error->getMessage()}\n";
             //return;
@@ -107,12 +116,13 @@ abstract class BaseTranslator {
     /**
      * @param $file
      * @param $lineNo
+     * @param int $count
      * @return string
      */
-    protected function readLine($file, $lineNo)
+    protected function readLine($file, $start, $count = 1)
     {
         $lines = file($file);
 
-        return $lines[$lineNo - 1];
+        return implode("\n", array_slice($lines, $start - 1, $count));
     }
 }
