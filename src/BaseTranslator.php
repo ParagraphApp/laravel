@@ -18,7 +18,7 @@ abstract class BaseTranslator {
 
     protected $endLine;
 
-    public function __construct($input, $startLine, $endLine)
+    public function __construct($input, $startLine = null, $endLine = null)
     {
         $this->input = $input;
         $this->storage = new Storage();
@@ -52,10 +52,7 @@ abstract class BaseTranslator {
         try {
             $prefix = preg_match('/<\?php/', $this->source) ? "" : "<?php\n";
             $ast = $parser->parse($prefix.$this->source);
-            if (preg_match('/entries/', $this->input)) {
-                dd($ast);
-                $signature = $this->findSignature($ast);
-            }
+            $signature = $this->findSignature($ast);
         } catch (Error $error) {
             //echo "Parse error: {$error->getMessage()}\n";
             //return;
@@ -73,7 +70,7 @@ abstract class BaseTranslator {
     /*
      * @return string
      */
-    protected function findSignature(array $node)
+    public function findSignature(array $node)
     {
         $functionCall = array_filter($node, function($child) {
             return $child instanceof Echo_ && $child->exprs[0]->name->parts[0] == 'p';
