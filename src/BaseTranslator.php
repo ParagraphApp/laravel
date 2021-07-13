@@ -7,6 +7,7 @@ use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\Scalar\Encapsed;
 use PhpParser\Node\Scalar\EncapsedStringPart;
 use PhpParser\Node\Stmt\Echo_;
+use PhpParser\Node\Stmt\InlineHTML;
 use PhpParser\ParserFactory;
 
 abstract class BaseTranslator {
@@ -14,19 +15,53 @@ abstract class BaseTranslator {
 
     protected $storage;
 
+    protected $file;
+
     protected $startLine;
 
     protected $endLine;
 
-    public function __construct($input, $startLine = null, $endLine = null)
+    protected $source;
+
+    public function __construct($input, $file, $startLine = null, $endLine = null)
     {
         $this->input = $input;
-        $this->storage = new Storage();
+        $this->file = $file;
         $this->startLine = $startLine;
         $this->endLine = $endLine;
+
+        $this->storage = new Storage();
     }
 
-    protected function findSource()
+    public function findSource()
+    {
+        $this->source = $this->readLine($this->file, $this->startLine, $this->endLine - $this->startLine + 1);
+        preg_match('/ob_start\(\); \?>(.+?)(?=<\?php echo p\(ob_get_clean)/s', $this->source, $matches);
+        $clean = $matches[1];
+
+        $parser = (new ParserFactory)->create(ParserFactory::PREFER_PHP7);
+
+        try {
+            $ast = $parser->parse($clean);
+            $signature = $this->findSignature($ast);
+        } catch (Error $error) {
+            //echo "Parse error: {$error->getMessage()}\n";
+            //return;
+        }
+
+        return [
+            'text' => $this->input,
+            'file' => $this->getCurrentFilePath(),
+            'context' => $this->context(),
+            'signature' => $signature ?? null,
+            'location' => $this->startLine
+        ];
+    }
+
+    /**
+     * @return array|string|string[]
+     */
+    protected function getCurrentFilePath()
     {
         $currentFolder = dirname(__FILE__);
         $stack = debug_backtrace();
@@ -38,40 +73,34 @@ abstract class BaseTranslator {
         array_shift($stack);
         $lastCall = array_shift($stack);
 
+        $basePath = function_exists('base_path') ? base_path() : '';
+
         if (preg_match('/storage\/framework\/views/', $lastCall['file'])) {
             preg_match('/\*\*PATH (.+\.blade\.php) ENDPATH\*\*/', file_get_contents($lastCall['file']), $matches);
-            $path = str_replace(base_path(), '', $matches[1]);
-        } else {
-            $path = str_replace(base_path(), '', $lastCall['file']);
+
+            return str_replace($basePath, '', $matches[1]);
         }
 
-        $this->source = $this->readLine($lastCall['file'], $this->startLine ?: $lastCall['line'], $this->endLine ? $this->endLine - $this->startLine : 1);
-
-        $parser = (new ParserFactory)->create(ParserFactory::PREFER_PHP7);
-
-        try {
-            $prefix = preg_match('/<\?php/', $this->source) ? "" : "<?php\n";
-            $ast = $parser->parse($prefix.$this->source);
-            $signature = $this->findSignature($ast);
-        } catch (Error $error) {
-            //echo "Parse error: {$error->getMessage()}\n";
-            //return;
-        }
-
-        return [
-            'text' => $this->input,
-            'file' => $path,
-            'context' => $this->context($stack),
-            'signature' => $signature ?? null,
-            'location' => $lastCall['line']
-        ];
+        return str_replace($basePath, '', $lastCall['file']);
     }
 
     /*
      * @return string
      */
-    public function findSignature(array $node)
+    public function findSignature(array $nodes)
     {
+        $variableCount = 0;
+
+        return implode(' ', array_filter(array_map(function($node) use (&$variableCount) {
+            if ($node instanceof InlineHTML) {
+                return trim($node->value);
+            }
+
+            if ($node instanceof Echo_) {
+                return "{variable".++$variableCount."}";
+            }
+        }, $nodes)));
+
         $functionCall = array_filter($node, function($child) {
             return $child instanceof Echo_ && $child->exprs[0]->name->parts[0] == 'p';
         });
@@ -91,11 +120,18 @@ abstract class BaseTranslator {
     }
 
     /**
-     * @param array $stack
      * @return string
      */
-    protected function context(array $stack)
+    protected function context()
     {
+        $currentFolder = dirname(__FILE__);
+        $stack = debug_backtrace();
+        $stack = array_filter($stack, function($call) use ($currentFolder) {
+            return isset($call['file']) && strpos($call['file'], $currentFolder) !== 0;
+        });
+
+        array_shift($stack);
+
         $lastCall = array_filter($stack, function($call) {
             return data_get($call, 'function') == 'buildMarkdownView';
         });
@@ -105,8 +141,10 @@ abstract class BaseTranslator {
             return get_class($lastCall['object']);
         }
 
-        if (request() && request()->route()) {
-            return request()->route()->getActionName();
+        if (function_exists('request')) {
+            if (request() && request()->route()) {
+                return request()->route()->getActionName();
+            }
         }
     }
 

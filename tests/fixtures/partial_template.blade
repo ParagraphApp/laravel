@@ -1,0 +1,31 @@
+<?php $__env->startSection('title', p('Documents')); ?>
+
+<?php $__env->startSection('content'); ?>
+    <div class="row">
+        <?php $__currentLoopData = $documents->sortBy('date'); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $document): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title"><?php echo e($document->title); ?> – <?php echo e($document->town->title); ?> - <?php echo e($document->date); ?></h4>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">
+                            <?php $pushkinStartLine = __LINE__; ob_start(); ?>
+                                <?php echo e($document->pages()->count()); ?> pages and <?php echo e(\App\Models\Entry::document($document)->count()); ?> processed entries
+                            <?php echo p(ob_get_clean(), $pushkinStartLine, __LINE__); ?>
+                        </p>
+                        <p class="card-text">
+                            <?php echo p('Source:', __LINE__); ?> <?php echo e($document->source); ?>
+
+                        </p>
+                    </div>
+                    <div class="card-footer d-flex justify-content-between">
+                        <a href="<?php echo e(route('document-view', [$document->external_id])); ?>" class="btn btn-light-primary"><?php echo p('See contents', __LINE__); ?></a>
+                    </div>
+                </div>
+            </div>
+        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+    </div>
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.main', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH /Users/duster/repos/predki/resources/views/documents/list.blade.php ENDPATH**/ ?>
