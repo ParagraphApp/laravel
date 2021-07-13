@@ -20,7 +20,7 @@ class PushkinServiceProvider extends ServiceProvider {
                 return "<?php \$pushkinStartLine = __LINE__; ob_start(); ?>";
             }
 
-            return "<?php echo p($expression, __LINE__); ?>";
+            return "<?php echo p($expression); ?>";
         });
 
         Blade::directive('endp', function() {

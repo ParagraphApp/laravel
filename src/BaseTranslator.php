@@ -17,27 +17,40 @@ abstract class BaseTranslator {
 
     protected $file;
 
+    protected $stack;
+
     protected $startLine;
 
     protected $endLine;
 
     protected $source;
 
-    public function __construct($input, $file, $startLine = null, $endLine = null)
+    protected $mode;
+
+    const MODE_HELPER_FUNCTION = 0;
+    const MODE_DIRECTIVE = 1;
+
+    public function __construct($input, $startLine = null, $endLine = null)
     {
         $this->input = $input;
-        $this->file = $file;
         $this->startLine = $startLine;
         $this->endLine = $endLine;
-
         $this->storage = new Storage();
     }
 
     public function findSource()
     {
-        $this->source = $this->readLine($this->file, $this->startLine, $this->endLine - $this->startLine + 1);
-        preg_match('/ob_start\(\); \?>(.+?)(?=<\?php echo p\(ob_get_clean)/s', $this->source, $matches);
-        $clean = $matches[1];
+        $this->source = $this->readLines();
+
+        if (preg_match('/ob_start\(\); \?>(.+?)(?=<\?php echo p\(ob_get_clean)/s', $this->source, $matches)) {
+            $this->mode = $this::MODE_DIRECTIVE;
+            $clean = $matches[1];
+        } else if (preg_match('/p\((.+?)(?=\);)/', $this->source, $matches)) {
+            $this->mode = $this::MODE_HELPER_FUNCTION;
+            $clean = "<?php " . $matches[1] . ";";
+        }
+
+        if (is_null($this->mode)) return;
 
         $parser = (new ParserFactory)->create(ParserFactory::PREFER_PHP7);
 
@@ -45,12 +58,11 @@ abstract class BaseTranslator {
             $ast = $parser->parse($clean);
             $signature = $this->findSignature($ast);
         } catch (Error $error) {
-            //echo "Parse error: {$error->getMessage()}\n";
-            //return;
+            //dd("Parse error: {$error->getMessage()}\n");
         }
 
         return [
-            'text' => $this->input,
+            'text' => trim($this->input),
             'file' => $this->getCurrentFilePath(),
             'context' => $this->context(),
             'signature' => $signature ?? null,
@@ -89,34 +101,28 @@ abstract class BaseTranslator {
      */
     public function findSignature(array $nodes)
     {
-        $variableCount = 0;
+        if ($this->mode == $this::MODE_DIRECTIVE) {
+            $variableCount = 0;
 
-        return implode(' ', array_filter(array_map(function($node) use (&$variableCount) {
-            if ($node instanceof InlineHTML) {
-                return trim($node->value);
-            }
+            return implode(' ', array_filter(array_map(function($node) use (&$variableCount) {
+                if ($node instanceof InlineHTML) {
+                    return trim($node->value);
+                }
 
-            if ($node instanceof Echo_) {
-                return "{variable".++$variableCount."}";
-            }
-        }, $nodes)));
+                if ($node instanceof Echo_) {
+                    return "{variable".++$variableCount."}";
+                }
+            }, $nodes)));
+        }
 
-        $functionCall = array_filter($node, function($child) {
-            return $child instanceof Echo_ && $child->exprs[0]->name->parts[0] == 'p';
-        });
-        if (empty($functionCall)) return;
-
-        $functionCall = array_shift($functionCall);
-        $functionCall = $functionCall->exprs[0];
-
-        if (! $functionCall->args[0]->value instanceof Encapsed) {
+        if (! $nodes[0]->expr instanceof Encapsed) {
             return;
         }
 
         return implode('', array_map(function($part) {
             if ($part instanceof EncapsedStringPart) return $part->value;
             if ($part instanceof Variable) return "{".$part->name."}";
-        }, $functionCall->args[0]->value->parts));
+        }, $nodes[0]->expr->parts));
     }
 
     /**
@@ -124,21 +130,15 @@ abstract class BaseTranslator {
      */
     protected function context()
     {
-        $currentFolder = dirname(__FILE__);
-        $stack = debug_backtrace();
-        $stack = array_filter($stack, function($call) use ($currentFolder) {
-            return isset($call['file']) && strpos($call['file'], $currentFolder) !== 0;
-        });
+        if (! empty($this->stack)) {
+            $lastCall = array_filter($this->stack, function($call) {
+                return data_get($call, 'function') == 'buildMarkdownView';
+            });
 
-        array_shift($stack);
-
-        $lastCall = array_filter($stack, function($call) {
-            return data_get($call, 'function') == 'buildMarkdownView';
-        });
-
-        if (! empty($lastCall)) {
-            $lastCall = array_shift($lastCall);
-            return get_class($lastCall['object']);
+            if (! empty($lastCall)) {
+                $lastCall = array_shift($lastCall);
+                return get_class($lastCall['object']);
+            }
         }
 
         if (function_exists('request')) {
@@ -148,16 +148,45 @@ abstract class BaseTranslator {
         }
     }
 
+    protected function findActualFile()
+    {
+        $this->stack = debug_backtrace();
+        $currentFolder = dirname(__FILE__);
+
+        $this->stack = array_filter($this->stack, function($call) use ($currentFolder) {
+            return isset($call['file']) && strpos($call['file'], $currentFolder) !== 0;
+        });
+
+        array_shift($this->stack);
+
+        $this->file = $this->stack[0]['file'];
+
+        if (! $this->startLine) {
+            $this->startLine = $this->stack[0]['line'];
+        }
+    }
+
     /**
      * @param $file
-     * @param $lineNo
-     * @param int $count
+     * @return $this
+     */
+    public function setFile($file)
+    {
+        $this->file = $file;
+
+        return $this;
+    }
+
+    /**
      * @return string
      */
-    protected function readLine($file, $start, $count = 1)
+    protected function readLines()
     {
-        $lines = file($file);
+        if (! $this->file) $this->findActualFile();
+        $lines = file($this->file);
 
-        return implode("\n", array_slice($lines, $start - 1, $count));
+        $count = $this->endLine ? $this->endLine - $this->startLine + 1 : 1;
+
+        return implode("\n", array_slice($lines, $this->startLine - 1, $count));
     }
 }
