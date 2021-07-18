@@ -3,7 +3,7 @@
 namespace Pushkin;
 
 use Pushkin\Client;
-use Pushkin\LaravelStorage;
+use Pushkin\Storage\LaravelStorage;
 use Illuminate\Console\Command;
 
 class DownloadTranslationsCommand extends Command
