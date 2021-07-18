@@ -9,6 +9,7 @@ use PhpParser\Node\Scalar\EncapsedStringPart;
 use PhpParser\Node\Stmt\Echo_;
 use PhpParser\Node\Stmt\InlineHTML;
 use PhpParser\ParserFactory;
+use Pushkin\Storage\LaravelStorage;
 
 abstract class BaseTranslator {
     protected $input;
@@ -35,7 +36,7 @@ abstract class BaseTranslator {
         $this->input = $input;
         $this->startLine = $startLine;
         $this->endLine = $endLine;
-        $this->storage = new Storage();
+        $this->storage = new LaravelStorage();
     }
 
     public function findSource()
@@ -85,7 +86,7 @@ abstract class BaseTranslator {
         array_shift($stack);
         $lastCall = array_shift($stack);
 
-        $basePath = function_exists('base_path') ? base_path() : '';
+        $basePath = function_exists('base_path') ? base_path() : dirname(dirname(__FILE__));
 
         if (preg_match('/storage\/framework\/views/', $lastCall['file'])) {
             preg_match('/\*\*PATH (.+\.blade\.php) ENDPATH\*\*/', file_get_contents($lastCall['file']), $matches);

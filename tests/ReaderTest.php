@@ -2,7 +2,7 @@
 
 use PhpParser\ParserFactory;
 
-class BaseTranslatorTest extends \PHPUnit\Framework\TestCase {
+class ReaderTest extends \PHPUnit\Framework\TestCase {
     /**
      * @test
      */
@@ -25,7 +25,7 @@ class BaseTranslatorTest extends \PHPUnit\Framework\TestCase {
         $decoded = json_decode($matches[1], true);
         $this->assertNull($decoded['signature']);
         $this->assertEquals('Test me', $decoded['text']);
-        $this->assertStringContainsString('BaseTranslatorTest', $decoded['file']);
+        $this->assertStringContainsString('ReaderTest', $decoded['file']);
     }
 
     /**
@@ -39,6 +39,6 @@ class BaseTranslatorTest extends \PHPUnit\Framework\TestCase {
         $decoded = json_decode($matches[1], true);
         $this->assertEquals("Test me {name}", $decoded['signature']);
         $this->assertEquals('Test me baby', $decoded['text']);
-        $this->assertStringContainsString('BaseTranslatorTest', $decoded['file']);
+        $this->assertStringContainsString('ReaderTest', $decoded['file']);
     }
 }

@@ -3,7 +3,7 @@
 namespace Pushkin;
 
 use Pushkin\Client;
-use Pushkin\Storage;
+use Pushkin\LaravelStorage;
 use Illuminate\Console\Command;
 
 class DownloadTranslationsCommand extends Command
@@ -39,6 +39,6 @@ class DownloadTranslationsCommand extends Command
         $translations = $client->downloadTranslations($this->option('locale'));
         $this->info("Fetched a total of " . count($translations) . " translations");
 
-        Storage::saveTranslations($this->option('locale') ?: 'default', $translations);
+        LaravelStorage::saveTranslations($this->option('locale') ?: 'default', $translations);
     }
 }
