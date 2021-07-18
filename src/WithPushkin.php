@@ -8,6 +8,8 @@ use Pushkin\Exceptions\FailedRequestException;
 trait WithPushkin {
     public $currentPageName;
 
+    public $currentSequenceName;
+
     public static $responseFragmentLength = 512;
 
     public function name($name)
@@ -23,7 +25,20 @@ trait WithPushkin {
         $action = $this->app['router']->getRoutes()->match(request()->create($uri, $method))->getAction();
         $context = $action['uses'];
 
-        $this->app[Client::class]->submitPage($contents, $context, Client::PAGE_TYPE_WEB, $this->currentPageName);
+        $this->app[Client::class]->submitPage(
+            $contents,
+            $context,
+            Client::PAGE_TYPE_WEB,
+            $this->currentPageName,
+            $this->currentSequenceName
+        );
+    }
+
+    public function sequence($name, Callable $callable)
+    {
+        $this->currentSequenceName = $name;
+
+        $callable();
     }
 
     /**

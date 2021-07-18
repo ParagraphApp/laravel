@@ -54,21 +54,17 @@ class Client {
     }
 
     /**
-     * @param $contents
+     * @param $snapshot
      * @param $context
      * @param $type
      * @param $name
+     * @param null $sequence
      * @return bool
      */
-    public function submitPage($contents, $context, $type = Client::PAGE_TYPE_WEB, $name = 'Untitled')
+    public function submitPage($snapshot, $context, $type = Client::PAGE_TYPE_WEB, $name = 'Untitled', $sequence = null)
     {
         $response = $this->client->post("{$this->projectId}/pages", [
-            'json' => [
-                'snapshot' => $contents,
-                'context' => $context,
-                'type' => $type,
-                'name' => $name
-            ]
+            'json' => compact('snapshot', 'context', 'type', 'name', 'sequence')
         ]);
 
         return true;
