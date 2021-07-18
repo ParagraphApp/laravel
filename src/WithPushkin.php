@@ -10,11 +10,20 @@ trait WithPushkin {
 
     public $currentSequenceName;
 
+    public $currentState;
+
     public static $responseFragmentLength = 512;
 
     public function name($name)
     {
         $this->currentPageName = $name;
+
+        return $this;
+    }
+
+    public function state($state)
+    {
+        $this->currentState = $state;
 
         return $this;
     }
@@ -30,7 +39,8 @@ trait WithPushkin {
             $context,
             Client::PAGE_TYPE_WEB,
             $this->currentPageName,
-            $this->currentSequenceName
+            $this->currentSequenceName,
+            $this->currentState
         );
     }
 
