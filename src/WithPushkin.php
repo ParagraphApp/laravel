@@ -75,6 +75,7 @@ trait WithPushkin {
     {
         parent::setUp();
         config(['app.url' => '']);
+        config(['mail.driver' => 'pushkin']);
         app()->bind(TranslatorContract::class, Reader::class);
         app()->bind(Mix::class, Mix::class);
     }
