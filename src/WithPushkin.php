@@ -7,26 +7,46 @@ use Illuminate\Support\Str;
 use Pushkin\Exceptions\FailedRequestException;
 
 trait WithPushkin {
-    public $currentPageName;
+    public static $currentPageName;
 
-    public $currentSequenceName;
+    public static $currentSequenceName;
 
-    public $currentState;
+    public static $currentState;
 
     public static $responseFragmentLength = 512;
 
+    public static $currentlyInSequence = false;
+
     public function name($name)
     {
-        $this->currentPageName = $name;
+        WithPushkin::$currentPageName = $name;
 
         return $this;
     }
 
     public function state($state)
     {
-        $this->currentState = $state;
+        WithPushkin::$currentState = $state;
 
         return $this;
+    }
+
+    public function sequence($name, Callable $callable)
+    {
+        WithPushkin::$currentSequenceName = $name;
+        WithPushkin::$currentlyInSequence = true;
+
+        $callable();
+
+        WithPushkin::$currentlyInSequence = false;
+        WithPushkin::reset();
+    }
+
+    public static function reset()
+    {
+        WithPushkin::$currentSequenceName = null;
+        WithPushkin::$currentState = null;
+        WithPushkin::$currentPageName = null;
     }
 
     public function submitPage($contents, $uri, $method)
@@ -39,17 +59,14 @@ trait WithPushkin {
             $contents,
             $context,
             Client::PAGE_TYPE_WEB,
-            $this->currentPageName,
-            $this->currentSequenceName,
-            $this->currentState
+            WithPushkin::$currentPageName,
+            WithPushkin::$currentSequenceName,
+            WithPushkin::$currentState
         );
-    }
 
-    public function sequence($name, Callable $callable)
-    {
-        $this->currentSequenceName = $name;
-
-        $callable();
+        if (! WithPushkin::$currentlyInSequence) {
+            WithPushkin::reset();
+        }
     }
 
     /**
@@ -62,7 +79,7 @@ trait WithPushkin {
         $response = parent::get($uri, $headers);
 
         if (! $response->isOk()) {
-            $fragment = substr($response->getContent(), 0, static::$responseFragmentLength);
+            $fragment = substr($response->getContent(), 0, WithPushkin::$responseFragmentLength);
             throw new FailedRequestException("Failed web request, code: {$response->getStatusCode()}, contents: {$fragment}");
         }
 
@@ -78,5 +95,6 @@ trait WithPushkin {
         config(['mail.driver' => 'pushkin']);
         app()->bind(TranslatorContract::class, Reader::class);
         app()->bind(Mix::class, Mix::class);
+        WithPushkin::reset();
     }
 }
