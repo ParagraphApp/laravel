@@ -2,6 +2,7 @@
 
 namespace Pushkin;
 
+use Illuminate\Foundation\Mix;
 use Illuminate\Support\Str;
 use Pushkin\Exceptions\FailedRequestException;
 
@@ -75,5 +76,6 @@ trait WithPushkin {
         parent::setUp();
         config(['app.url' => '']);
         app()->bind(TranslatorContract::class, Reader::class);
+        app()->bind(Mix::class, Mix::class);
     }
 }
