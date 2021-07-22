@@ -28,6 +28,8 @@ abstract class BaseTranslator {
 
     protected $mode;
 
+    protected $parser;
+
     const MODE_HELPER_FUNCTION = 0;
     const MODE_DIRECTIVE = 1;
 
@@ -37,6 +39,7 @@ abstract class BaseTranslator {
         $this->startLine = $startLine;
         $this->endLine = $endLine;
         $this->storage = new LaravelStorage();
+        $this->parser = (new ParserFactory)->create(ParserFactory::PREFER_PHP7);
     }
 
     public function findSource()
@@ -53,10 +56,8 @@ abstract class BaseTranslator {
 
         if (is_null($this->mode)) return;
 
-        $parser = (new ParserFactory)->create(ParserFactory::PREFER_PHP7);
-
         try {
-            $ast = $parser->parse($clean);
+            $ast = $this->parser->parse($clean);
             $signature = $this->findSignature($ast);
         } catch (Error $error) {
             //dd("Parse error: {$error->getMessage()}\n");
