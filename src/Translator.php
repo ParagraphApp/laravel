@@ -71,7 +71,7 @@ class Translator extends BaseTranslator implements TranslatorContract {
     protected function findTranslation($text, $file)
     {
         $match = collect(static::$translations[$this->locale] ?? [])->first(function($translation) use ($text, $file) {
-            return $translation['file'] == $file && $translation['original_version'] == $text;
+            return $translation['file'] == $file && trim($translation['original_version']) == trim($text);
         });
 
         if ($match) return $this->insertValues($this->input, $match['text'], $match['original_version']);
