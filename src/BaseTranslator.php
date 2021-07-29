@@ -189,6 +189,6 @@ abstract class BaseTranslator {
 
         $count = $this->endLine ? $this->endLine - $this->startLine + 1 : 1;
 
-        return implode("\n", array_slice($lines, $this->startLine - 1, $count));
+        return implode('', array_slice($lines, $this->startLine - 1, $count));
     }
 }
