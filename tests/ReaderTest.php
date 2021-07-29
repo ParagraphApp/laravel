@@ -12,7 +12,7 @@ class ReaderTest extends \PHPUnit\Framework\TestCase {
         $reader->setFile(basename(__DIR__) . '/fixtures/partial_template.blade');
 
         $data = $reader->findSource();
-        $this->assertEquals("{variable1} pages and {variable2} processed entries", $data['signature']);
+        $this->assertEquals("{variable1} pages and {variable2} processed entries", trim($data['signature']));
     }
 
     /**
