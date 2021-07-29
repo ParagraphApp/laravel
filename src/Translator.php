@@ -79,7 +79,7 @@ class Translator extends BaseTranslator implements TranslatorContract {
 
     protected function insertValues($rendered, $newSignature, $originalSignature)
     {
-        $pattern = preg_replace('/({[a-z]+\d+})/', '(.+)', $originalSignature);
+        $pattern = trim(preg_replace('/(\\\{[a-z]+\d+\\\})/', '(.+)', preg_quote($originalSignature)));
         preg_match("/{$pattern}/m", $rendered, $values);
         $index = 0;
 
