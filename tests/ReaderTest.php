@@ -18,6 +18,21 @@ class ReaderTest extends \PHPUnit\Framework\TestCase {
     /**
      * @test
      */
+    public function signature_can_be_found_for_multiline_input2()
+    {
+        $reader = new \Pushkin\Reader("We do our best trying to provide a comprehensive list of interesting events in
+                        London. However, Boogie Call is ran by volunteers so we could miss something.
+                        If you know an interesting live concert or a party happening in London – please log in and add it! Our goal is
+                        to be the number one party & concert database for London.", 144, 149);
+        $reader->setFile(basename(__DIR__) . '/fixtures/partial_template2.blade');
+
+        $data = $reader->findSource();
+        $this->assertEquals("We do our best trying to provide a comprehensive list of interesting events in {variable1}. However, Boogie Call is ran by volunteers so we could miss something. If you know an interesting live concert or a party happening in {variable2} – please log in and add it! Our goal is to be the number one party & concert database for {variable3}.", trim(preg_replace('/\s\s+/', ' ', $data['signature'])));
+    }
+
+    /**
+     * @test
+     */
     public function direct_function_usage_can_be_parsed_as_well()
     {
         $output = p("Test me");

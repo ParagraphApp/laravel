@@ -106,9 +106,9 @@ abstract class BaseTranslator {
         if ($this->mode == $this::MODE_DIRECTIVE) {
             $variableCount = 0;
 
-            return implode(' ', array_filter(array_map(function($node) use (&$variableCount) {
+            return implode('', array_filter(array_map(function($node) use (&$variableCount) {
                 if ($node instanceof InlineHTML) {
-                    return trim($node->value);
+                    return $node->value;
                 }
 
                 if ($node instanceof Echo_) {

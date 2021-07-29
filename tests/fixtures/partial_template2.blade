@@ -1,0 +1,167 @@
+<?php echo $__env->make('partials.headerCommon', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
+
+<section class="section swatch-beige-black">
+    <div class="container">
+        <header class="section-header no-underline">
+            <h1 class="headline super hairline" style="line-height: 48px;">
+                <?php echo p('Events in'); ?> <a class="underline"><?php echo e($locationTitle); ?></a>
+            </h1>
+        </header>
+    </div>
+</section>
+
+<section class="section swatch-black-beige has-top">
+    <div class="decor-top">
+        <svg class="decor hidden-xs hidden-sm" height="100%" preserveAspectRatio="none" version="1.1"
+             viewBox="0 0 100 100" width="100%" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0 100 L2 60 L4 100 L6 60 L8 100 L10 60 L12 100 L14 60 L16 100 L18 60 L20 100 L22 60 L24 100 L26 60 L28 100 L30 60 L32 100 L34 60 L36 100 L38 60 L40 100 L42 60 L44 100 L46 60 L48 100 L50 60 L52 100 L54 60 L56 100 L58 60 L60 100 L62 60 L64 100 L66 60 L68 100 L70 60 L72 100 L74 60 L76 100 L78 60 L80 100 L82 60 L84 100 L86 60 L88 100 L90 60 L92 100 L94 60 L96 100 L98 60 L100 100 Z"
+                  stroke-width="0"></path>
+        </svg>
+        <svg class="decor visible-xs visible-sm" height="100%" preserveAspectRatio="none" version="1.1"
+             viewBox="0 0 100 100" width="100%" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0 100 L5 60 L10 100 L5 60 L10 100 L15 60 L20 100 L25 60 L30 100 L35 60 L40 100 L45 60 L50 100 L55 60 L60 100 L65 60 L70 100 L75 60 L80 100 L85 60 L90 100 L95 60 L100 100"></path>
+        </svg>
+    </div>
+    <div class="container">
+
+        <?php if($eventList == false || count($eventList) == 0): ?>
+        <div class="row">
+            <blockquote class="fancy-blockquote">
+                <div class="col-md-2 col-md-offset-2 mr-xlg">
+                    <div class="box-round box-big">
+                        <div class="box-dummy"></div>
+                <span class="box-inner">
+                    <img alt="" class="img-circle" src="<?php echo e(Config::get('app.static_url')); ?>/assets/images/design/custom-icons/custom-icon-search.png">
+                </span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <p>
+                        <?php $pushkinStartLine = __LINE__; ob_start(); ?>
+                        Oh sorry, we don't have any events in your city listed yet.
+                        <?php echo p(ob_get_clean(), $pushkinStartLine, __LINE__); ?>
+                    </p>
+                    <p>
+                        <?php $pushkinStartLine = __LINE__; ob_start(); ?>
+                        But it would make us happy if you could add one! ;-)
+                        <?php echo p(ob_get_clean(), $pushkinStartLine, __LINE__); ?>
+                    </p>
+                </div>
+            </blockquote>
+        </div>
+
+        <?php else: ?>
+
+        <ul class="tag-links small-screen-center">
+            <li>
+                <?php if(!$featuredTag): ?>
+                    <a class="pseudo-border active" href="/<?php echo e(App::getLocale()); ?>/<?php echo e($urlSegments[2]); ?>"><?php echo p('All'); ?></a>
+                <?php else: ?>
+                    <a class="pseudo-border" href="/<?php echo e(App::getLocale()); ?>/<?php echo e($urlSegments[2]); ?>"><?php echo p('All'); ?></a>
+                <?php endif; ?>
+            </li>
+
+            <?php $__currentLoopData = $popularTags; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $oneTag): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                <?php if($featuredTag && strtolower($oneTag['title']) == $featuredTag): ?>
+                    <li><a class="pseudo-border active" href="/<?php echo e(App::getLocale()); ?>/<?php echo e($urlSegments[2]); ?>/<?php echo e(urlencode(strtolower($oneTag['title']))); ?>"><?php echo e($oneTag['title']); ?></a></li>
+                <?php else: ?>
+                    <li><a class="pseudo-border" href="/<?php echo e(App::getLocale()); ?>/<?php echo e($urlSegments[2]); ?>/<?php echo e(urlencode(strtolower($oneTag['title']))); ?>"><?php echo e($oneTag['title']); ?></a></li>
+                <?php endif; ?>
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+        </ul>
+
+        <div class="row">
+            <ul class="list-unstyled isotope">
+
+                <?php for($i = ($currentPage * Config::get('constants.EVENT_LIST_PAGE_SIZE'));
+                $i < (($currentPage + 1) * Config::get('constants.EVENT_LIST_PAGE_SIZE'))
+                    && !empty($eventList[$i]); $i++): ?>
+
+                    <?php
+                        // See if some of the event tags are included in popular tags
+                        $filters = "";
+                        foreach ($eventList[$i]->tags as $oneTag) {
+                            foreach ($eventList->getPopularTags() as $onePopularTag) {
+                                if ($oneTag == $onePopularTag['title']) $filters .= "filter-" . $onePopularTag['slug'] . " ";
+                            }
+                        }
+                    ?>
+
+                    <?php echo $__env->make('partials.eventBadge', array('event' => $eventList[$i], 'filters' => $filters), \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
+
+                <?php endfor; ?>
+
+            </ul>
+
+            <?php endif; ?>
+
+            <?php
+            $pagesNo = ceil(count($eventList) / Config::get('constants.EVENT_LIST_PAGE_SIZE'));
+            $urlBase = "/" . App::getLocale() . "/" . $urlSegments[2];
+
+            if ($pagesNo > 1) {
+            $startPage = ($currentPage - 2 < 0) ? 0 : $currentPage - 2;
+            $endPage = ($currentPage + 3 < $pagesNo) ? $currentPage + 3 : $pagesNo - 1;
+            ?>
+
+            <div class="col-md-12 text-center mt-lg">
+                <ul class="post-navigation pagination">
+
+                    <?php
+                    if ($currentPage > 0) {
+                        if ($currentPage == 1) {
+                            echo "<li><a href=\"".$urlBase."\"><i class=\"fa fa-angle-left\"></i></a></li>";
+                        } else {
+                            echo "<li><a href=\"".$urlBase."/".($currentPage - 1)."\"><i class=\"fa fa-angle-left\"></i></a></li>";
+                        }
+                    }
+
+                    for($page = $startPage; $page <= $endPage; $page++) {
+                        if ($page == $currentPage) {
+                            echo "<li class=\"active\"><span href=\"#\">".($page + 1)."</span></li>";
+                        } else {
+                            if ($page + 1 == 1) {
+                                echo "<li><a href=\"".$urlBase."\">".($page + 1)."</a></li>";
+                            } else {
+                                echo "<li><a href=\"".$urlBase."/".($page + 1)."\">".($page + 1)."</a></li>";
+                            }
+                        }
+                    }
+
+                    if ($pagesNo > ($currentPage + 1)) {
+                        echo "<li><a href=\"".$urlBase."/".($currentPage + 2)."\"><i class=\"fa fa-angle-right\"></i></a></li>";
+                    } else {
+                        //echo "<li class=\"disabled\"><a href=\"#\"><i class=\"fa fa-angle-right\"></i></a></li>";
+                    }
+                    ?>
+                </ul>
+            </div>
+
+            <?php } ?>
+
+            <div class="col-md-12 mt-lg mb-lg">
+                <div class="well">
+                    <?php $pushkinStartLine = __LINE__; ob_start(); ?>
+                        We do our best trying to provide a comprehensive list of interesting events in
+                        <?php echo e($locationTitle); ?>. However, Boogie Call is ran by volunteers so we could miss something.
+                        If you know an interesting live concert or a party happening in <?php echo e($locationTitle); ?> – please log in and add it! Our goal is
+                        to be the number one party & concert database for <?php echo e($locationTitle); ?>.
+                    <?php echo p(ob_get_clean(), $pushkinStartLine, __LINE__); ?>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</section>
+
+<?php $__env->startSection('extra_js'); ?>
+    <script type="text/javascript">
+        var translationMeters = '<?php echo e(trans('main.distance_meters')); ?>';
+        var translationKilometers = '<?php echo e(trans('main.distance_kilometers')); ?>';
+    </script>
+    <script src="<?php echo e(Config::get('app.static_url')); ?>/assets/js/location.js"></script>
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('partials.footerCommon', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
+<?php /**PATH /Users/denismysenko/repos/boogie-laravel/resources/views/eventlist.blade.php ENDPATH**/ ?>
