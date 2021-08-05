@@ -2,10 +2,8 @@
 
 namespace Pushkin;
 
-use Pushkin\Exceptions\FailedTranslation;
 use Pushkin\Storage\LaravelStorage;
 use Pushkin\Storage\StorageContract;
-use Illuminate\Support\Facades\Log;
 
 class Translator extends BaseTranslator implements TranslatorContract {
     /**
@@ -43,13 +41,7 @@ class Translator extends BaseTranslator implements TranslatorContract {
         $this->loadLocaleTranslations();
         $location = $this->findSource();
 
-        try {
-            return $this->findTranslation($location['signature'] ?: $this->input, $location['file']) ?: $this->input;
-        } catch (FailedTranslation $e) {
-            Log::error("Failed translating {$this->file} line {$this->startLine}: {$e->getMessage()}");
-
-            return $this->input;
-        }
+        return $this->findTranslation($location['signature'] ?: $this->input, $location['file']) ?: $this->input;
     }
 
     /**
@@ -92,13 +84,7 @@ class Translator extends BaseTranslator implements TranslatorContract {
         $index = 0;
 
         return preg_replace_callback('/({[a-z]+\d+})/', function($matches) use ($values, &$index) {
-            $index++;
-
-            if (! isset($values[$index])) {
-                throw new FailedTranslation("Unable to form a translation with values");
-            }
-
-            return $values[$index];
+            return $values[++$index];
         }, $newSignature, -1, $count, PREG_OFFSET_CAPTURE);
     }
 

@@ -33,6 +33,8 @@ abstract class BaseTranslator {
     const MODE_HELPER_FUNCTION = 0;
     const MODE_DIRECTIVE = 1;
 
+    protected static $counters = [];
+
     public function __construct($input, $startLine = null, $endLine = null)
     {
         $this->input = $input;
@@ -42,16 +44,44 @@ abstract class BaseTranslator {
         $this->parser = (new ParserFactory)->create(ParserFactory::PREFER_PHP7);
     }
 
+    protected static function resetCounters()
+    {
+        static::$counters = [];
+    }
+
+    protected function getCurrentLineIndex()
+    {
+        if (! isset(static::$counters[$this->file])) {
+            static::$counters[$this->file] = [];
+        }
+
+        if (! isset(static::$counters[$this->file][$this->startLine])) {
+            static::$counters[$this->file][$this->startLine] = 0;
+        }
+
+        $processedLines = array_keys(static::$counters[$this->file]);
+        rsort($processedLines);
+        $lastProcessedLine = $processedLines[0];
+
+        if ($this->startLine < $lastProcessedLine) {
+            static::$counters[$this->file] = [];
+        }
+
+        return static::$counters[$this->file][$this->startLine]++;
+    }
+
     public function findSource()
     {
         $this->source = $this->readLines();
 
-        if (preg_match('/ob_start\(\); \?>(.+?)(?=<\?php echo p\(ob_get_clean)/s', $this->source, $matches)) {
+        if (preg_match_all('/ob_start\(\); \?>(.+?)(?=<\?php echo p\(ob_get_clean)/s', $this->source, $matches)) {
             $this->mode = $this::MODE_DIRECTIVE;
-            $clean = $matches[1];
-        } else if (preg_match('/p\((.+?)(?=\);)/', $this->source, $matches)) {
+            $index = $this->getCurrentLineIndex();
+            $clean = $matches[1][$index];
+        } else if (preg_match_all('/p\((.+?)(?=\))/', $this->source, $matches)) {
             $this->mode = $this::MODE_HELPER_FUNCTION;
-            $clean = "<?php " . $matches[1] . ";";
+            $index = $this->getCurrentLineIndex();
+            $clean = "<?php " . $matches[1][$index] . ";";
         }
 
         if (is_null($this->mode)) return;
@@ -174,6 +204,8 @@ abstract class BaseTranslator {
      */
     public function setFile($file)
     {
+        static::resetCounters();
+
         $this->file = $file;
 
         return $this;
