@@ -117,9 +117,9 @@ abstract class BaseTranslator {
      */
     public function findSignature(array $nodes)
     {
-        if ($this->mode == $this::MODE_DIRECTIVE) {
-            $variableCount = 0;
+        $variableCount = 0;
 
+        if ($this->mode == $this::MODE_DIRECTIVE) {
             return implode('', array_filter(array_map(function($node) use (&$variableCount) {
                 if ($node instanceof InlineHTML) {
                     return $node->value;
@@ -135,9 +135,9 @@ abstract class BaseTranslator {
             return;
         }
 
-        return implode('', array_map(function($part) {
+        return implode('', array_map(function($part) use (&$variableCount) {
             if ($part instanceof EncapsedStringPart) return $part->value;
-            if ($part instanceof Variable) return "{".$part->name."}";
+            if ($part instanceof Variable) return "{variable".++$variableCount."}";
         }, $nodes[0]->expr->parts));
     }
 
