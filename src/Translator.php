@@ -2,8 +2,10 @@
 
 namespace Pushkin;
 
+use Pushkin\Exceptions\FailedParsing;
 use Pushkin\Storage\LaravelStorage;
 use Pushkin\Storage\StorageContract;
+use Illuminate\Support\Facades\Log;
 
 class Translator extends BaseTranslator implements TranslatorContract {
     /**
@@ -39,7 +41,14 @@ class Translator extends BaseTranslator implements TranslatorContract {
     public function translate()
     {
         $this->loadLocaleTranslations();
-        $location = $this->findSource();
+
+        try {
+            $location = $this->findSource();
+        } catch (FailedParsing $e) {
+            Log::error("Failed parsing while trying to translate {$this->file} line {$this->startLine}");
+
+            return $this->input;
+        }
 
         return $this->findTranslation($location['signature'] ?: $this->input, $location['file']) ?: $this->input;
     }

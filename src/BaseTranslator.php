@@ -9,6 +9,7 @@ use PhpParser\Node\Scalar\EncapsedStringPart;
 use PhpParser\Node\Stmt\Echo_;
 use PhpParser\Node\Stmt\InlineHTML;
 use PhpParser\ParserFactory;
+use Pushkin\Exceptions\FailedParsing;
 use Pushkin\Storage\LaravelStorage;
 
 abstract class BaseTranslator {
@@ -33,7 +34,9 @@ abstract class BaseTranslator {
     const MODE_HELPER_FUNCTION = 0;
     const MODE_DIRECTIVE = 1;
 
-    protected static $counters = [];
+    protected static $currentPosition;
+
+    protected static $currentIndex;
 
     public function __construct($input, $startLine = null, $endLine = null)
     {
@@ -44,30 +47,11 @@ abstract class BaseTranslator {
         $this->parser = (new ParserFactory)->create(ParserFactory::PREFER_PHP7);
     }
 
-    protected static function resetCounters()
+    protected function getCurrentLineIndex($total)
     {
-        static::$counters = [];
-    }
+        if ($total == 1) return 0;
 
-    protected function getCurrentLineIndex()
-    {
-        if (! isset(static::$counters[$this->file])) {
-            static::$counters[$this->file] = [];
-        }
-
-        if (! isset(static::$counters[$this->file][$this->startLine])) {
-            static::$counters[$this->file][$this->startLine] = 0;
-        }
-
-        $processedLines = array_keys(static::$counters[$this->file]);
-        rsort($processedLines);
-        $lastProcessedLine = $processedLines[0];
-
-        if ($this->startLine < $lastProcessedLine) {
-            static::$counters[$this->file] = [];
-        }
-
-        return static::$counters[$this->file][$this->startLine]++;
+        return static::$currentIndex;
     }
 
     public function findSource()
@@ -76,15 +60,15 @@ abstract class BaseTranslator {
 
         if (preg_match_all('/ob_start\(\); \?>(.+?)(?=<\?php echo p\(ob_get_clean)/s', $this->source, $matches)) {
             $this->mode = $this::MODE_DIRECTIVE;
-            $index = $this->getCurrentLineIndex();
-            $clean = $matches[1][$index];
         } else if (preg_match_all('/p\((.+?)(?=\))/', $this->source, $matches)) {
             $this->mode = $this::MODE_HELPER_FUNCTION;
-            $index = $this->getCurrentLineIndex();
-            $clean = "<?php " . $matches[1][$index] . ";";
         }
 
         if (is_null($this->mode)) return;
+
+        $index = $this->getCurrentLineIndex(count($matches[1]));
+        if (! isset($matches[1][$index])) throw new FailedParsing("Unable to locate call #{$index}");
+        $clean = $this->mode == $this::MODE_DIRECTIVE ? $matches[1][$index] : "<?php " . $matches[1][$index] . ";";
 
         try {
             $ast = $this->parser->parse($clean);
@@ -204,8 +188,6 @@ abstract class BaseTranslator {
      */
     public function setFile($file)
     {
-        static::resetCounters();
-
         $this->file = $file;
 
         return $this;
@@ -220,6 +202,14 @@ abstract class BaseTranslator {
         $lines = file($this->file);
 
         $count = $this->endLine ? $this->endLine - $this->startLine + 1 : 1;
+        $currentPosition = implode(':', [$this->file, $this->startLine]);
+
+        if ($currentPosition == static::$currentPosition) {
+            static::$currentIndex++;
+        } else {
+            static::$currentPosition = $currentPosition;
+            static::$currentIndex = 0;
+        }
 
         return implode('', array_slice($lines, $this->startLine - 1, $count));
     }
