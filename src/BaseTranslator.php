@@ -38,6 +38,8 @@ abstract class BaseTranslator {
 
     protected static $currentIndex;
 
+    protected static $texts = [];
+
     public function __construct($input, $startLine = null, $endLine = null)
     {
         $this->input = $input;
@@ -191,6 +193,14 @@ abstract class BaseTranslator {
         $this->file = $file;
 
         return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public static function texts()
+    {
+        return static::$texts;
     }
 
     /**

@@ -54,14 +54,22 @@ trait WithPushkin {
         // Get controller name
         $action = $this->app['router']->getRoutes()->match(request()->create($uri, $method))->getAction();
         $context = $action['uses'];
+        $client = $this->app[Client::class];
 
-        $this->app[Client::class]->submitPage(
+        $client->submitPage(
             $contents,
             $context,
             Client::PAGE_TYPE_WEB,
             WithPushkin::$currentPageName,
             WithPushkin::$currentSequenceName,
             WithPushkin::$currentState
+        );
+        
+        $client->submitTexts(
+            array_map(function($text) {
+                $text['visible'] = false;
+                return $text;
+            }, array_filter(Reader::texts(), fn($t) => ! preg_match('/\.blade\.php$/', $t['file'])))
         );
 
         if (! WithPushkin::$currentlyInSequence) {

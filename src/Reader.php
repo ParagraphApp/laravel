@@ -11,6 +11,8 @@ class Reader extends BaseTranslator implements TranslatorContract {
     {
         $data = $this->findSource();
 
+        static::$texts[] = $data;
+
         $prefix = "<!-- pushkin-begin " . json_encode($data) . " -->";
         $postfix = "<!-- pushkin-end -->";
 
