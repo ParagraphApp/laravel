@@ -33,7 +33,7 @@ class LaravelStorage implements StorageContract {
         }
     }
 
-    public static function saveTranslations($locale = 'default', $translations)
+    public static function saveTranslations($translations, $locale = 'default')
     {
         file_put_contents(storage_path("pushkin_{$locale}.json"), json_encode($translations));
     }

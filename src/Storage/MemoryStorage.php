@@ -15,10 +15,10 @@ class MemoryStorage implements StorageContract {
     }
 
     /**
-     * @param string $locale
      * @param $translations
+     * @param string $locale
      */
-    public static function saveTranslations($locale = 'default', $translations)
+    public static function saveTranslations($translations, $locale = 'default')
     {
         static::$translations[$locale] = $translations;
     }

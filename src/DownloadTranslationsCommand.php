@@ -39,6 +39,6 @@ class DownloadTranslationsCommand extends Command
         $translations = $client->downloadTranslations($this->option('locale'));
         $this->info("Fetched a total of " . count($translations) . " translations");
 
-        LaravelStorage::saveTranslations($this->option('locale') ?: 'default', $translations);
+        LaravelStorage::saveTranslations($translations, $this->option('locale') ?: 'default');
     }
 }

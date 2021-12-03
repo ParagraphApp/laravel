@@ -30,7 +30,7 @@ class PerformanceTest extends \PHPUnit\Framework\TestCase {
                 'original_version' => '{variable1} pages and {variable2} processed entries'
             ];
 
-        $storage->saveTranslations('default', $translations);
+        $storage->saveTranslations($translations, 'default');
 
         $start = microtime(true);
         $translation = $translator->translate();
