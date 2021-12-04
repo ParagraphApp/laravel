@@ -139,7 +139,7 @@ abstract class BaseTranslator {
 
         return implode('', array_map(function($part) use (&$variableCount) {
             if ($part instanceof EncapsedStringPart) return $part->value;
-            if ($part instanceof Variable) return "{variable".++$variableCount."}";
+            if ($part instanceof Variable) return "{" . ($part->name ?: "variable".++$variableCount) . "}";
         }, $nodes[0]->expr->parts));
     }
 
