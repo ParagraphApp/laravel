@@ -1,6 +1,6 @@
 <?php
 
-namespace Pushkin;
+namespace Pushkin\Commands;
 
 use Pushkin\Client;
 use Pushkin\Storage\LaravelStorage;

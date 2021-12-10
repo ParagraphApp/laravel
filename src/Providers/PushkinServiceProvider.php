@@ -2,15 +2,17 @@
 
 namespace Pushkin\Providers;
 
+use Illuminate\Contracts\Support\DeferrableProvider;
 use Illuminate\Support\ServiceProvider;
 use Pushkin\Client;
 use Pushkin\Mailer;
 use Illuminate\Support\Facades\Blade;
-use Pushkin\DownloadTranslationsCommand;
+use Pushkin\Commands\DownloadTranslationsCommand;
+use Pushkin\Commands\SubmitPagesCommand;
 use Pushkin\Translator;
 use Pushkin\TranslatorContract;
 
-class PushkinServiceProvider extends ServiceProvider {
+class PushkinServiceProvider extends ServiceProvider implements DeferrableProvider {
     public function boot()
     {
         $this->app->bind(TranslatorContract::class, Translator::class);
@@ -33,7 +35,8 @@ class PushkinServiceProvider extends ServiceProvider {
 
         if ($this->app->runningInConsole()) {
             $this->commands([
-                DownloadTranslationsCommand::class
+                DownloadTranslationsCommand::class,
+                SubmitPagesCommand::class,
             ]);
         }
     }
@@ -43,5 +46,24 @@ class PushkinServiceProvider extends ServiceProvider {
         $this->app->singleton(Client::class, function ($app) {
             return new Client(config('services.pushkin.project_id'));
         });
+
+        /*$this->app->singleton('translator', function ($app) {
+            return new class {
+                public function get()
+                {
+                    return 'yes';
+                }
+            };
+        });*/
+    }
+
+    /**
+     * Get the services provided by the provider.
+     *
+     * @return array
+     */
+    public function provides()
+    {
+        return ['translator'];
     }
 }
