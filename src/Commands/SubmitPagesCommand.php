@@ -20,10 +20,12 @@ use Pushkin\Client;
 class SubmitPagesCommand extends Command
 {
     protected $expressions = [
-        '/@lang\(\'(.+)\'\)/',
-        '/@lang\("(.+)"\)/',
-        '/__\(\'(.+)\'\)/',
-        '/__\("(.+)"\)/',
+        '/@lang\(\'(.+?)\'\)/',
+        '/@lang\("(.+?)"\)/',
+        '/__\(\'(.+?)\'\)/',
+        '/__\("(.+?)"\)/',
+        '/(?:@choice|trans_choice)\("(.+?)",/',
+        '/(?:@choice|trans_choice)\(\'(.+?)\',/'
     ];
 
     /**
