@@ -14,12 +14,12 @@ class Client {
 
     public function __construct()
     {
-        $this->projectId = config('services.pushkin.project_id');
+        $this->projectId = config('pushkin.project_id');
 
         $this->client = new Guzzle([
-            'base_uri' => config('services.pushkin.api_url'),
+            'base_uri' => config('pushkin.api_url'),
             'headers' => [
-                'Authorization' => 'Bearer ' . config('services.pushkin.api_key')
+                'Authorization' => 'Bearer ' . config('pushkin.api_key')
             ]
         ]);
     }

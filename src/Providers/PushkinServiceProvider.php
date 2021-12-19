@@ -12,9 +12,11 @@ use Pushkin\Commands\SubmitPagesCommand;
 use Pushkin\Translator;
 use Pushkin\TranslatorContract;
 
-class PushkinServiceProvider extends ServiceProvider implements DeferrableProvider {
+class PushkinServiceProvider extends ServiceProvider {
     public function boot()
     {
+        $this->mergeConfigFrom(__DIR__.DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.'config/pushkin.php', 'pushkin');
+
         $this->app->bind(TranslatorContract::class, Translator::class);
 
         Blade::directive('p', function($expression) {
@@ -44,10 +46,10 @@ class PushkinServiceProvider extends ServiceProvider implements DeferrableProvid
     public function register()
     {
         $this->app->singleton(Client::class, function ($app) {
-            return new Client(config('services.pushkin.project_id'));
+            return new Client(config('pushkin.project_id'));
         });
 
-        /*$this->app->singleton('translator', function ($app) {
+  /*      $this->app->singleton('translator', function ($app) {
             return new class {
                 public function get()
                 {
@@ -62,8 +64,8 @@ class PushkinServiceProvider extends ServiceProvider implements DeferrableProvid
      *
      * @return array
      */
-    public function provides()
-    {
-        return ['translator'];
-    }
+//    public function provides()
+//    {
+//        return ['translator'];
+//    }
 }

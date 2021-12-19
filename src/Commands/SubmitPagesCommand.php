@@ -16,6 +16,7 @@ use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Scalar\String_;
 use Psy\Util\Str;
 use Pushkin\Client;
+use Pushkin\Exceptions\FailedParsing;
 
 class SubmitPagesCommand extends Command
 {
@@ -44,6 +45,8 @@ class SubmitPagesCommand extends Command
 
     protected $router;
 
+    const PATH_OPTION_MANUAL = 'My template path is not in the list';
+
     /**
      * Create a new command instance.
      *
@@ -64,7 +67,8 @@ class SubmitPagesCommand extends Command
     public function handle()
     {
         $routes = $this->routes();
-        $views = $this->views();
+        $viewsPath = $this->findViewsPath();
+        $views = $this->views($viewsPath);
 
         $expanded = $routes->map(function($route) {
             $contents = file_get_contents($route['path']);
@@ -93,7 +97,7 @@ class SubmitPagesCommand extends Command
                         $this->inside = $this->expectedMethod == $node->name->name;
                     }
 
-                    if ($node instanceof FuncCall && $node->name->parts[0] == 'view' && $this->inside) {
+                    if ($node instanceof FuncCall && data_get($node, 'name.parts.0') == 'view' && $this->inside) {
                         foreach ($node->args as $argument) {
                             if ($argument->value instanceof String_) {
                                 $this->found[] = $argument->value->value;
@@ -152,7 +156,12 @@ class SubmitPagesCommand extends Command
             return $route;
         });
 
-        $client->submitTexts($expanded->pluck('texts')->flatten(2)->toArray());
+        $texts = $expanded->pluck('texts')->flatten(2);
+        $this->line("Found {$texts->count()} texts in the view templates");
+
+        $this->info("Sending to Pushkin");
+        $client->submitTexts($texts->toArray());
+        $this->info("Done!");
     }
 
     /**
@@ -195,9 +204,13 @@ class SubmitPagesCommand extends Command
             });
     }
 
-    protected function views()
+    protected function views($path)
     {
-        $iterator = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator(resource_path('views')));
+        if (! file_exists($path) || ! is_dir($path)) {
+            throw new FailedParsing("Path {$path} doesn't exist or isn't a folder");
+        }
+
+        $iterator = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($path));
         $views = collect([]);
 
         foreach ($iterator as $file) {
@@ -205,7 +218,7 @@ class SubmitPagesCommand extends Command
                 continue;
             }
 
-            $key = str_replace(resource_path('views'), '', $file->getPathname());
+            $key = str_replace($path, '', $file->getPathname());
             $key = ltrim($key, '//');
             $key = preg_replace('/\.blade\.php$/', '', $key);
             $key = str_replace(DIRECTORY_SEPARATOR, '.', $key);
@@ -216,6 +229,44 @@ class SubmitPagesCommand extends Command
             ]);
         }
 
+        $this->line("Discovered {$views->count()} view templates");
+
         return $views;
+    }
+
+    /**
+     * @return string
+     */
+    protected function findViewsPath()
+    {
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator(base_path(), \RecursiveDirectoryIterator::SKIP_DOTS),
+            \RecursiveIteratorIterator::SELF_FIRST,
+            \RecursiveIteratorIterator::CATCH_GET_CHILD
+        );
+
+        $folders = [];
+
+        foreach ($iterator as $file) {
+            if (strpos($file->getPathname(), base_path('vendor')) === 0) continue;
+            if (strpos($file->getPathname(), base_path('storage')) === 0) continue;
+
+            if ($file->isDir() && $file->getBasename() == 'views') {
+                $folders[] = $file->getPathname();
+            }
+        }
+
+        $folders[] = $this::PATH_OPTION_MANUAL;
+
+        $viewsPath = $this->choice(
+            'Where should we look for Blade templates?',
+            $folders,
+        );
+
+        if ($viewsPath == $this::PATH_OPTION_MANUAL) {
+            return $this->ask("What's the correct path to the template folder?");
+        }
+
+        return $viewsPath;
     }
 }
