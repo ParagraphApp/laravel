@@ -167,25 +167,31 @@ class SubmitPagesCommand extends Command
         $this->info("Done!");
 
         $url = $this->ask("Now let's try to render one page, what URL should we try?", '/');
-        $this->render($url);
+        $contents = $this->render($url);
+        $this->info("Received " . (strlen($contents)) . " bytes of content, submitting to Pushkin");
+        dd($contents);
     }
 
     protected function render($url)
     {
         $kernel = app()->make(HttpKernel::class);
 
-        $symfonyRequest = SymfonyRequest::create('/', 'GET');
+        $symfonyRequest = SymfonyRequest::create($url, 'GET');
         $response = $kernel->handle($request = Request::createFromBase($symfonyRequest));
 
-        if ($response->isRedirection() && $location == $response->headers->get('Location')) {
-            // Follow redirect
-        }
 
         $kernel->terminate($request, $response);
+
+        if ($response->isRedirection() && $location = $response->headers->get('Location')) {
+            $this->info("Following a redirect to {$location}");
+            return $this->render($location);
+        }
 
         if (! $response->isOk()) {
             throw new \ParseError("Unable to load url {$url}: " . substr($response, 0, 64));
         }
+
+        return $response->getContent();
     }
 
     /**
