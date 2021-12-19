@@ -3,6 +3,8 @@
 namespace Pushkin\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Contracts\Http\Kernel as HttpKernel;
+use Illuminate\Http\Request;
 use Illuminate\Routing\Route;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Collection;
@@ -17,6 +19,7 @@ use PhpParser\Node\Scalar\String_;
 use Psy\Util\Str;
 use Pushkin\Client;
 use Pushkin\Exceptions\FailedParsing;
+use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
 
 class SubmitPagesCommand extends Command
 {
@@ -162,6 +165,27 @@ class SubmitPagesCommand extends Command
         $this->info("Sending to Pushkin");
         $client->submitTexts($texts->toArray());
         $this->info("Done!");
+
+        $url = $this->ask("Now let's try to render one page, what URL should we try?", '/');
+        $this->render($url);
+    }
+
+    protected function render($url)
+    {
+        $kernel = app()->make(HttpKernel::class);
+
+        $symfonyRequest = SymfonyRequest::create('/', 'GET');
+        $response = $kernel->handle($request = Request::createFromBase($symfonyRequest));
+
+        if ($response->isRedirection() && $location == $response->headers->get('Location')) {
+            // Follow redirect
+        }
+
+        $kernel->terminate($request, $response);
+
+        if (! $response->isOk()) {
+            throw new \ParseError("Unable to load url {$url}: " . substr($response, 0, 64));
+        }
     }
 
     /**
@@ -261,6 +285,7 @@ class SubmitPagesCommand extends Command
         $viewsPath = $this->choice(
             'Where should we look for Blade templates?',
             $folders,
+            0
         );
 
         if ($viewsPath == $this::PATH_OPTION_MANUAL) {
