@@ -4,6 +4,7 @@ namespace Pushkin\Providers;
 
 use Illuminate\Contracts\Support\DeferrableProvider;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Translation\TranslationServiceProvider;
 use Pushkin\Client;
 use Pushkin\Mailer;
 use Illuminate\Support\Facades\Blade;
@@ -13,7 +14,7 @@ use Pushkin\ProxyTranslator;
 use Pushkin\Translator;
 use Pushkin\TranslatorContract;
 
-class PushkinServiceProvider extends ServiceProvider implements DeferrableProvider {
+class PushkinServiceProvider extends ServiceProvider {
     public function boot()
     {
         $this->mergeConfigFrom(__DIR__.DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.'config/pushkin.php', 'pushkin');
@@ -42,28 +43,15 @@ class PushkinServiceProvider extends ServiceProvider implements DeferrableProvid
                 SubmitPagesCommand::class,
             ]);
         }
-    }
 
-    public function register()
-    {
         $this->app->singleton(Client::class, function ($app) {
             return new Client(config('pushkin.project_id'));
         });
 
-        $this->app->instance('translator.laravel', $this->app['translator']);
+        $provider = new TranslationServiceProvider($this->app);
+        $provider->register();
 
-        $this->app->singleton('translator', function ($app) {
-            return new ProxyTranslator($app['translator.laravel']);
-        });
-    }
-
-    /**
-     * Get the services provided by the provider.
-     *
-     * @return array
-     */
-    public function provides()
-    {
-        return ['translator'];
+        $laravel = resolve('translator');
+        $this->app->instance('translator', new ProxyTranslator($laravel));
     }
 }

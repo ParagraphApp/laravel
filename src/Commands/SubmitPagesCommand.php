@@ -175,6 +175,7 @@ class SubmitPagesCommand extends Command
         $url = $this->ask("Now let's try to render one page, what URL should we try?", '/');
         $response = $this->render($url);
         $this->info("Received " . (strlen($response->getContent())) . " bytes of content, submitting to Pushkin");
+        print_r($response->getContent());
     }
 
     protected function render($url)
