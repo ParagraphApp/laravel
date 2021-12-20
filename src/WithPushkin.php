@@ -64,7 +64,7 @@ trait WithPushkin {
             WithPushkin::$currentSequenceName,
             WithPushkin::$currentState
         );
-        
+
         $client->submitTexts(
             array_map(function($text) {
                 $text['visible'] = false;
@@ -85,6 +85,10 @@ trait WithPushkin {
     public function get($uri, array $headers = [])
     {
         $response = parent::get($uri, $headers);
+
+        if ($response->isRedirection()) {
+            return $this->get($response->headers->get('Location'), $headers);
+        }
 
         if (! $response->isOk()) {
             $fragment = substr($response->getContent(), 0, WithPushkin::$responseFragmentLength);

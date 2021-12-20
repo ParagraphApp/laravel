@@ -9,10 +9,11 @@ use Pushkin\Mailer;
 use Illuminate\Support\Facades\Blade;
 use Pushkin\Commands\DownloadTranslationsCommand;
 use Pushkin\Commands\SubmitPagesCommand;
+use Pushkin\ProxyTranslator;
 use Pushkin\Translator;
 use Pushkin\TranslatorContract;
 
-class PushkinServiceProvider extends ServiceProvider {
+class PushkinServiceProvider extends ServiceProvider implements DeferrableProvider {
     public function boot()
     {
         $this->mergeConfigFrom(__DIR__.DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.'config/pushkin.php', 'pushkin');
@@ -49,14 +50,11 @@ class PushkinServiceProvider extends ServiceProvider {
             return new Client(config('pushkin.project_id'));
         });
 
-  /*      $this->app->singleton('translator', function ($app) {
-            return new class {
-                public function get()
-                {
-                    return 'yes';
-                }
-            };
-        });*/
+        $this->app->instance('translator.laravel', $this->app['translator']);
+
+        $this->app->singleton('translator', function ($app) {
+            return new ProxyTranslator($app['translator.laravel']);
+        });
     }
 
     /**
@@ -64,8 +62,8 @@ class PushkinServiceProvider extends ServiceProvider {
      *
      * @return array
      */
-//    public function provides()
-//    {
-//        return ['translator'];
-//    }
+    public function provides()
+    {
+        return ['translator'];
+    }
 }

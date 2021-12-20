@@ -4,6 +4,7 @@ namespace Pushkin\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Http\Kernel as HttpKernel;
+use Illuminate\Foundation\Testing\Concerns\MakesHttpRequests;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Route;
 use Illuminate\Routing\Router;
@@ -19,7 +20,11 @@ use PhpParser\Node\Scalar\String_;
 use Psy\Util\Str;
 use Pushkin\Client;
 use Pushkin\Exceptions\FailedParsing;
+use Pushkin\Reader;
+use Pushkin\TranslatorContract;
+use Pushkin\WithPushkin;
 use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
+use Tests\CreatesApplication;
 
 class SubmitPagesCommand extends Command
 {
@@ -166,32 +171,26 @@ class SubmitPagesCommand extends Command
         $client->submitTexts($texts->toArray());
         $this->info("Done!");
 
+        app()->bind(TranslatorContract::class, Reader::class);
         $url = $this->ask("Now let's try to render one page, what URL should we try?", '/');
-        $contents = $this->render($url);
-        $this->info("Received " . (strlen($contents)) . " bytes of content, submitting to Pushkin");
-        dd($contents);
+        $response = $this->render($url);
+        $this->info("Received " . (strlen($response->getContent())) . " bytes of content, submitting to Pushkin");
     }
 
     protected function render($url)
     {
-        $kernel = app()->make(HttpKernel::class);
+        $client = new class extends \Illuminate\Foundation\Testing\TestCase {
+            use CreatesApplication, WithPushkin;
 
-        $symfonyRequest = SymfonyRequest::create($url, 'GET');
-        $response = $kernel->handle($request = Request::createFromBase($symfonyRequest));
+            public function setApp($application)
+            {
+                $this->app = $application;
+            }
+        };
 
+        $client->setApp(app());
 
-        $kernel->terminate($request, $response);
-
-        if ($response->isRedirection() && $location = $response->headers->get('Location')) {
-            $this->info("Following a redirect to {$location}");
-            return $this->render($location);
-        }
-
-        if (! $response->isOk()) {
-            throw new \ParseError("Unable to load url {$url}: " . substr($response, 0, 64));
-        }
-
-        return $response->getContent();
+        return $client->get($url);
     }
 
     /**
