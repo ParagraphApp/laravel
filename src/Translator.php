@@ -46,7 +46,9 @@ class Translator extends BaseTranslator implements TranslatorContract {
             $location = $this->findSource();
         } catch (FailedParsing $e) {
             Log::error("Failed parsing while trying to translate {$this->file} line {$this->startLine}");
+        }
 
+        if (empty($location)) {
             return $this->input;
         }
 
