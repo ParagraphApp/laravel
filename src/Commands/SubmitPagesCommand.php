@@ -53,6 +53,8 @@ class SubmitPagesCommand extends Command
 
     protected $router;
 
+    protected $ignoredFolders = ['vendor', 'storage', 'node_modules'];
+
     const PATH_OPTION_MANUAL = 'My template path is not in the list';
 
     /**
@@ -278,8 +280,9 @@ class SubmitPagesCommand extends Command
         $folders = [];
 
         foreach ($iterator as $file) {
-            if (strpos($file->getPathname(), base_path('vendor')) === 0) continue;
-            if (strpos($file->getPathname(), base_path('storage')) === 0) continue;
+            foreach ($this->ignoredFolders as $ignoredFolder) {
+                if (strpos($file->getPathname(), base_path($ignoredFolder)) === 0) continue 2;
+            }
 
             if ($file->isDir() && $file->getBasename() == 'views') {
                 $folders[] = $file->getPathname();
