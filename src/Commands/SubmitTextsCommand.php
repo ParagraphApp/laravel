@@ -3,10 +3,6 @@
 namespace Pushkin\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Contracts\Http\Kernel as HttpKernel;
-use Illuminate\Foundation\Testing\Concerns\MakesHttpRequests;
-use Illuminate\Http\Request;
-use Illuminate\Routing\Route;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Collection;
 use PhpParser\Error;
@@ -17,24 +13,16 @@ use PhpParser\NodeVisitorAbstract;
 use PhpParser\Node;
 use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Scalar\String_;
-use Psy\Util\Str;
 use Pushkin\Client;
 use Pushkin\Exceptions\FailedParsing;
-use Pushkin\Reader;
-use Pushkin\TranslatorContract;
 use Pushkin\WithPushkin;
-use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
 use Tests\CreatesApplication;
 
-class SubmitPagesCommand extends Command
+class SubmitTextsCommand extends Command
 {
     protected $expressions = [
-        '/@lang\(\'(.+?)\'\)/',
-        '/@lang\("(.+?)"\)/',
-        '/__\(\'(.+?)\'\)/',
-        '/__\("(.+?)"\)/',
-        '/(?:@choice|trans_choice)\("(.+?)",/',
-        '/(?:@choice|trans_choice)\(\'(.+?)\',/'
+        '/(?:trans|@choice|@lang|__|trans_choice)\s*\(\s*\'(.+?)(?<!\\\\)\'/',
+        '/(?:trans|@choice|@lang|__|trans_choice)\s*\(\s*"(.+?)(?<!\\\\)"/',
     ];
 
     /**
@@ -42,7 +30,7 @@ class SubmitPagesCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'pushkin:submit-pages';
+    protected $signature = 'pushkin:submit-texts';
 
     /**
      * The console command description.
@@ -77,8 +65,12 @@ class SubmitPagesCommand extends Command
     public function handle()
     {
         $routes = $this->routes();
-        $viewsPath = $this->findViewsPath();
-        $views = $this->views($viewsPath);
+
+        $langPath = $this->findPath('lang', 'language files');
+        $texts = $this->parseLanguageFiles($langPath);
+
+        $viewsPath = $this->findPath('views', 'Blade templates');
+        $views = $this->parseViewTemplates($viewsPath);
 
         $expanded = $routes->map(function($route) {
             $contents = file_get_contents($route['path']);
@@ -172,12 +164,6 @@ class SubmitPagesCommand extends Command
         $this->info("Sending to Pushkin");
         $client->submitTexts($texts->toArray());
         $this->info("Done!");
-
-        app()->bind(TranslatorContract::class, Reader::class);
-        $url = $this->ask("Now let's try to render one page, what URL should we try?", '/');
-        $response = $this->render($url);
-        $this->info("Received " . (strlen($response->getContent())) . " bytes of content, submitting to Pushkin");
-        print_r($response->getContent());
     }
 
     protected function render($url)
@@ -236,7 +222,7 @@ class SubmitPagesCommand extends Command
             });
     }
 
-    protected function views($path)
+    protected function parseViewTemplates($path)
     {
         if (! file_exists($path) || ! is_dir($path)) {
             throw new FailedParsing("Path {$path} doesn't exist or isn't a folder");
@@ -266,10 +252,51 @@ class SubmitPagesCommand extends Command
         return $views;
     }
 
+    protected function parseLanguageFiles($path)
+    {
+        if (! file_exists($path) || ! is_dir($path)) {
+            throw new FailedParsing("Path {$path} doesn't exist or isn't a folder");
+        }
+
+        $iterator = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($path));
+        $files = collect([]);
+
+        foreach ($iterator as $file) {
+            if ($file->isDir() || ! preg_match('/\.(?:php|json)$/', $file->getPathname())) {
+                continue;
+            }
+
+            $key = str_replace($path, '', $file->getPathname());
+            $key = ltrim($key, '//');
+            $key = preg_replace('/(?:\.php|\.json)$/', '', $key);
+            $key = str_replace(DIRECTORY_SEPARATOR, '.', $key);
+            list ($locale, $key) = explode('.', $key . '.', 3);
+
+            $texts = preg_match('/\.php$/', $file->getPathname()) ? require($file->getPathname()) : json_decode(file_get_contents($file->getPathname()), true);
+
+            if (! is_array($texts)) {
+                throw new FailedParsing("File {$file->getPathname()} doesn't return an array with texts");
+            }
+
+            $files->push([
+                'key' => $key,
+                'locale' => $locale,
+                'path' => $file->getPathname(),
+                'texts' => $texts
+            ]);
+        }
+
+        $this->line("Discovered {$files->count()} language files with a total of {$files->pluck('texts')->flatten(1)->count()} texts");
+
+        return $files;
+    }
+
     /**
+     * @param string $folder
+     * @param string $noun
      * @return string
      */
-    protected function findViewsPath()
+    protected function findPath($folder, $noun)
     {
         $iterator = new \RecursiveIteratorIterator(
             new \RecursiveDirectoryIterator(base_path(), \RecursiveDirectoryIterator::SKIP_DOTS),
@@ -284,7 +311,7 @@ class SubmitPagesCommand extends Command
                 if (strpos($file->getPathname(), base_path($ignoredFolder)) === 0) continue 2;
             }
 
-            if ($file->isDir() && $file->getBasename() == 'views') {
+            if ($file->isDir() && $file->getBasename() == $folder) {
                 $folders[] = $file->getPathname();
             }
         }
@@ -292,13 +319,13 @@ class SubmitPagesCommand extends Command
         $folders[] = $this::PATH_OPTION_MANUAL;
 
         $viewsPath = $this->choice(
-            'Where should we look for Blade templates?',
+            "Where should we look for {$noun}?",
             $folders,
             0
         );
 
         if ($viewsPath == $this::PATH_OPTION_MANUAL) {
-            return $this->ask("What's the correct path to the template folder?");
+            return $this->ask("What's the correct path to the {$noun} folder?");
         }
 
         return $viewsPath;

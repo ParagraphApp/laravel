@@ -6,10 +6,12 @@ use Illuminate\Contracts\Support\DeferrableProvider;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Translation\TranslationServiceProvider;
 use Pushkin\Client;
+use Pushkin\Commands\InitialiseCommand;
 use Pushkin\Mailer;
 use Illuminate\Support\Facades\Blade;
 use Pushkin\Commands\DownloadTranslationsCommand;
-use Pushkin\Commands\SubmitPagesCommand;
+use Pushkin\Commands\SubmitTextsCommand;
+use Pushkin\Commands\SubmitPageCommand;
 use Pushkin\ProxyTranslator;
 use Pushkin\Translator;
 use Pushkin\TranslatorContract;
@@ -40,7 +42,9 @@ class PushkinServiceProvider extends ServiceProvider {
         if ($this->app->runningInConsole()) {
             $this->commands([
                 DownloadTranslationsCommand::class,
-                SubmitPagesCommand::class,
+                SubmitTextsCommand::class,
+                SubmitPageCommand::class,
+                InitialiseCommand::class,
             ]);
         }
 
