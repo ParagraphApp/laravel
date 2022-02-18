@@ -29,9 +29,9 @@ class Client {
      * @return array
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function downloadTranslations($locale = null)
+    public function downloadTexts($locale = null)
     {
-        $response = $this->client->get("{$this->projectId}/translations", [
+        $response = $this->client->get("{$this->projectId}/texts", [
             'query' => array_filter([
                 'locale' => $locale
             ])
@@ -44,9 +44,9 @@ class Client {
      * @param $texts
      * @return bool
      */
-    public function submitTexts($texts)
+    public function submitPlaceholders($texts)
     {
-        $response = $this->client->post("{$this->projectId}/texts", [
+        $response = $this->client->post("{$this->projectId}/placeholders", [
             'json' => $texts
         ]);
 

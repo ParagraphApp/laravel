@@ -80,7 +80,7 @@ abstract class BaseTranslator {
         }
 
         return [
-            'text' => trim($this->input),
+            'placeholder' => trim($this->input),
             'file' => $this->getCurrentFilePath(),
             'context' => $this->context(),
             'signature' => $signature ?? null,

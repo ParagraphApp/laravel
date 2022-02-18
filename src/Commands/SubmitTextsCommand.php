@@ -162,7 +162,7 @@ class SubmitTextsCommand extends Command
         $this->line("Found {$texts->count()} texts in the view templates");
 
         $this->info("Sending to Pushkin");
-        $client->submitTexts($texts->toArray());
+        $client->submitPlaceholders($texts->toArray());
         $this->info("Done!");
     }
 

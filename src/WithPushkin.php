@@ -65,7 +65,7 @@ trait WithPushkin {
             WithPushkin::$currentState
         );
 
-        $client->submitTexts(
+        $client->submitPlaceholders(
             array_map(function($text) {
                 $text['visible'] = false;
                 return $text;
