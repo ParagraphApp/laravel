@@ -193,7 +193,7 @@ class SubmitTextsCommand extends Command
 
             $matches = array_map(function($match) use ($html) {
                 return [
-                    'text' => $match[0],
+                    'placeholder' => $match[0],
                     'location' => substr_count(mb_substr($html, 0, $match[1]), PHP_EOL) + 1
                 ];
             }, $matches[1]);
