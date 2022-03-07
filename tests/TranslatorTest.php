@@ -8,8 +8,8 @@ class TranslatorTest extends \PHPUnit\Framework\TestCase {
      */
     public function text_is_replaced_with_translation_when_necessary()
     {
-        $translator = new \Pushkin\Translator("2 pages and 1 processed entries", 13, 15);
-        $storage = new \Pushkin\Storage\MemoryStorage();
+        $translator = new \Paragraph\Translator("2 pages and 1 processed entries", 13, 15);
+        $storage = new \Paragraph\Storage\MemoryStorage();
         $translator->setStorage($storage)->setFile(basename(__DIR__) . '/fixtures/partial_template.blade');
         $storage->saveTranslations([
             [

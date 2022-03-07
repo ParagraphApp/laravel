@@ -8,7 +8,7 @@ class ReaderTest extends \PHPUnit\Framework\TestCase {
      */
     public function signature_can_be_found_for_multiline_input()
     {
-        $reader = new \Pushkin\Reader("1 pages and 0 processed entries", 13, 15);
+        $reader = new \Paragraph\Reader("1 pages and 0 processed entries", 13, 15);
         $reader->setFile(basename(__DIR__) . '/fixtures/partial_template.blade');
 
         $data = $reader->findSource();
@@ -20,7 +20,7 @@ class ReaderTest extends \PHPUnit\Framework\TestCase {
      */
     public function signature_can_be_found_for_multiline_input2()
     {
-        $reader = new \Pushkin\Reader("We do our best trying to provide a comprehensive list of interesting events in
+        $reader = new \Paragraph\Reader("We do our best trying to provide a comprehensive list of interesting events in
                         London. However, Boogie Call is ran by volunteers so we could miss something.
                         If you know an interesting live concert or a party happening in London – please log in and add it! Our goal is
                         to be the number one party & concert database for London.", 144, 149);

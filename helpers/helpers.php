@@ -9,6 +9,6 @@ if (! function_exists('p')) {
      */
     function p($input, $startLine = null, $endLine = null)
     {
-        return resolve(\Pushkin\TranslatorContract::class, compact('input', 'startLine', 'endLine'))->translate();
+        return resolve(\Paragraph\TranslatorContract::class, compact('input', 'startLine', 'endLine'))->translate();
     }
 }

@@ -10,8 +10,8 @@ class PerformanceTest extends \PHPUnit\Framework\TestCase {
      */
     public function replacement_is_reasonably_fast()
     {
-        $translator = new \Pushkin\Translator("2 pages and 1 processed entries", 13, 15);
-        $storage = new \Pushkin\Storage\LaravelStorage();
+        $translator = new \Paragraph\Translator("2 pages and 1 processed entries", 13, 15);
+        $storage = new \Paragraph\Storage\LaravelStorage();
         $translator->setStorage($storage)->setFile(basename(__DIR__) . '/fixtures/partial_template.blade');
 
         $translations = array_map(function() {
