@@ -35,7 +35,7 @@ class SubmitPageCommand extends Command
 
         $url = $this->ask("Let's try to render one page, what URL should we try?", '/');
         $response = $this->render($url);
-        $this->info("Received " . (strlen($response->getContent())) . " bytes of content, submitting to Pushkin");
+        $this->info("Received " . (strlen($response->getContent())) . " bytes of content, submitting to Paragraph");
 
         print_r($response->getContent());
     }
