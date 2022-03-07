@@ -1,9 +1,9 @@
 <?php
 
-namespace Pushkin\Commands;
+namespace Paragraph\Commands;
 
-use Pushkin\Client;
-use Pushkin\Storage\LaravelStorage;
+use Paragraph\Client;
+use Paragraph\Storage\LaravelStorage;
 use Illuminate\Console\Command;
 
 class DownloadTranslationsCommand extends Command
@@ -13,14 +13,14 @@ class DownloadTranslationsCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'pushkin:download {--locale=}';
+    protected $signature = 'paragraph:download {--locale=}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Download new Pushkin translations and text updates';
+    protected $description = 'Download new Paragraph translations and text updates';
 
     /**
      * @var Client

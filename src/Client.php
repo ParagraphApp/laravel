@@ -1,6 +1,6 @@
 <?php
 
-namespace Pushkin;
+namespace Paragraph;
 
 use GuzzleHttp\Client as Guzzle;
 
@@ -14,12 +14,12 @@ class Client {
 
     public function __construct()
     {
-        $this->projectId = config('pushkin.project_id');
+        $this->projectId = config('paragraph.project_id');
 
         $this->client = new Guzzle([
-            'base_uri' => config('pushkin.api_url'),
+            'base_uri' => config('paragraph.api_url'),
             'headers' => [
-                'Authorization' => 'Bearer ' . config('pushkin.api_key')
+                'Authorization' => 'Bearer ' . config('paragraph.api_key')
             ]
         ]);
     }

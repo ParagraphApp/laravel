@@ -1,6 +1,6 @@
 <?php
 
-namespace Pushkin\Exceptions;
+namespace Paragraph\Exceptions;
 
 class ConfigurationFailure extends \Exception
 {

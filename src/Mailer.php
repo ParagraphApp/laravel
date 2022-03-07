@@ -1,6 +1,6 @@
 <?php
 
-namespace Pushkin;
+namespace Paragraph;
 
 use Illuminate\Mail\Transport\Transport;
 use Swift_Mime_SimpleMessage;
@@ -21,9 +21,9 @@ class Mailer extends Transport {
                 $message->getBody(),
                 $context,
                 Client::PAGE_TYPE_EMAIL,
-                WithPushkin::$currentPageName,
-                WithPushkin::$currentSequenceName,
-                WithPushkin::$currentState
+                WithParagraph::$currentPageName,
+                WithParagraph::$currentSequenceName,
+                WithParagraph::$currentState
             );
     }
 }

@@ -1,10 +1,10 @@
 <?php
 
-namespace Pushkin;
+namespace Paragraph;
 
-use Pushkin\Exceptions\FailedParsing;
-use Pushkin\Storage\LaravelStorage;
-use Pushkin\Storage\StorageContract;
+use Paragraph\Exceptions\FailedParsing;
+use Paragraph\Storage\LaravelStorage;
+use Paragraph\Storage\StorageContract;
 use Illuminate\Support\Facades\Log;
 
 class Translator extends BaseTranslator implements TranslatorContract {

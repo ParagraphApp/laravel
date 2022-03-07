@@ -1,12 +1,12 @@
 <?php
 
-namespace Pushkin;
+namespace Paragraph;
 
 use Illuminate\Foundation\Mix;
 use Illuminate\Support\Str;
-use Pushkin\Exceptions\FailedRequestException;
+use Paragraph\Exceptions\FailedRequestException;
 
-trait WithPushkin {
+trait WithParagraph {
     public static $currentPageName;
 
     public static $currentSequenceName;
@@ -19,34 +19,34 @@ trait WithPushkin {
 
     public function name($name)
     {
-        WithPushkin::$currentPageName = $name;
+        WithParagraph::$currentPageName = $name;
 
         return $this;
     }
 
     public function state($state)
     {
-        WithPushkin::$currentState = $state;
+        WithParagraph::$currentState = $state;
 
         return $this;
     }
 
     public function sequence($name, Callable $callable)
     {
-        WithPushkin::$currentSequenceName = $name;
-        WithPushkin::$currentlyInSequence = true;
+        WithParagraph::$currentSequenceName = $name;
+        WithParagraph::$currentlyInSequence = true;
 
         $callable();
 
-        WithPushkin::$currentlyInSequence = false;
-        WithPushkin::reset();
+        WithParagraph::$currentlyInSequence = false;
+        WithParagraph::reset();
     }
 
     public static function reset()
     {
-        WithPushkin::$currentSequenceName = null;
-        WithPushkin::$currentState = null;
-        WithPushkin::$currentPageName = null;
+        WithParagraph::$currentSequenceName = null;
+        WithParagraph::$currentState = null;
+        WithParagraph::$currentPageName = null;
     }
 
     public function submitPage($contents, $uri, $method)
@@ -60,9 +60,9 @@ trait WithPushkin {
             $contents,
             $context,
             Client::PAGE_TYPE_WEB,
-            WithPushkin::$currentPageName,
-            WithPushkin::$currentSequenceName,
-            WithPushkin::$currentState
+            WithParagraph::$currentPageName,
+            WithParagraph::$currentSequenceName,
+            WithParagraph::$currentState
         );
 
         $client->submitPlaceholders(
@@ -72,8 +72,8 @@ trait WithPushkin {
             }, array_filter(Reader::texts(), fn($t) => ! preg_match('/\.blade\.php$/', $t['file'])))
         );
 
-        if (! WithPushkin::$currentlyInSequence) {
-            WithPushkin::reset();
+        if (! WithParagraph::$currentlyInSequence) {
+            WithParagraph::reset();
         }
     }
 
@@ -91,7 +91,7 @@ trait WithPushkin {
         }
 
         if (! $response->isOk()) {
-            $fragment = substr($response->getContent(), 0, WithPushkin::$responseFragmentLength);
+            $fragment = substr($response->getContent(), 0, WithParagraph::$responseFragmentLength);
             throw new FailedRequestException("Failed web request, code: {$response->getStatusCode()}, contents: {$fragment}");
         }
 
@@ -104,9 +104,9 @@ trait WithPushkin {
     {
         parent::setUp();
         config(['app.url' => '']);
-        config(['mail.driver' => 'pushkin']);
+        config(['mail.driver' => 'paragraph']);
         app()->bind(TranslatorContract::class, Reader::class);
         app()->bind(Mix::class, Mix::class);
-        WithPushkin::reset();
+        WithParagraph::reset();
     }
 }

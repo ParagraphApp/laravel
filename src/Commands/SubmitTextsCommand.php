@@ -1,6 +1,6 @@
 <?php
 
-namespace Pushkin\Commands;
+namespace Paragraph\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Routing\Router;
@@ -13,9 +13,9 @@ use PhpParser\NodeVisitorAbstract;
 use PhpParser\Node;
 use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Scalar\String_;
-use Pushkin\Client;
-use Pushkin\Exceptions\FailedParsing;
-use Pushkin\WithPushkin;
+use Paragraph\Client;
+use Paragraph\Exceptions\FailedParsing;
+use Paragraph\WithParagraph;
 use Tests\CreatesApplication;
 
 class SubmitTextsCommand extends Command
@@ -30,7 +30,7 @@ class SubmitTextsCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'pushkin:submit-texts';
+    protected $signature = 'paragraph:submit-texts';
 
     /**
      * The console command description.
@@ -161,7 +161,7 @@ class SubmitTextsCommand extends Command
         $texts = $expanded->pluck('texts')->flatten(2);
         $this->line("Found {$texts->count()} texts in the view templates");
 
-        $this->info("Sending to Pushkin");
+        $this->info("Sending to Paragraph");
         $client->submitPlaceholders($texts->toArray());
         $this->info("Done!");
     }
@@ -169,7 +169,7 @@ class SubmitTextsCommand extends Command
     protected function render($url)
     {
         $client = new class extends \Illuminate\Foundation\Testing\TestCase {
-            use CreatesApplication, WithPushkin;
+            use CreatesApplication, WithParagraph;
 
             public function setApp($application)
             {

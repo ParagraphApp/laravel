@@ -1,9 +1,9 @@
 <?php
 
-namespace Pushkin\Commands;
+namespace Paragraph\Commands;
 
 use Illuminate\Console\Command;
-use Pushkin\Exceptions\ConfigurationFailure;
+use Paragraph\Exceptions\ConfigurationFailure;
 
 class InitialiseCommand extends Command
 {
@@ -12,14 +12,14 @@ class InitialiseCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'pushkin:init';
+    protected $signature = 'paragraph:init';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Initialise project with Pushkin';
+    protected $description = 'Initialise project with Paragraph';
 
     /**
      * Execute the console command.
@@ -30,18 +30,18 @@ class InitialiseCommand extends Command
     {
         $this->checkApiKey();
 
-        $this->call('pushkin:submit-texts');
-        $this->call('pushkin:submit-page');
+        $this->call('paragraph:submit-texts');
+        $this->call('paragraph:submit-page');
     }
 
     protected function checkApiKey()
     {
-        if (empty(config('pushkin.project_id'))) {
-            throw new ConfigurationFailure("Missing Pushkin project id – make sure it's in your .env file or environment");
+        if (empty(config('paragraph.project_id'))) {
+            throw new ConfigurationFailure("Missing Paragraph project id – make sure it's in your .env file or environment");
         }
 
-        if (empty(config('pushkin.api_key'))) {
-            throw new ConfigurationFailure("Missing Pushkin API key – make sure it's in your .env file or environment");
+        if (empty(config('paragraph.api_key'))) {
+            throw new ConfigurationFailure("Missing Paragraph API key – make sure it's in your .env file or environment");
         }
     }
 }

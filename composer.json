@@ -1,15 +1,15 @@
 {
-    "name": "pushkin/laravel",
+    "name": "paragraph/laravel",
     "type": "library",
-    "description": "Official Laravel package for Pushkin - a more productive way to manage your texts",
+    "description": "Official Laravel package for Paragraph - a more productive way to manage your texts",
     "keywords": ["texts","templates","localization"],
-    "homepage": "https://github.com/PushkinApp/laravel",
+    "homepage": "https://github.com/ParagraphApp/laravel",
     "license": "MIT",
     "authors": [
         {
             "name": "Denis Mysenko",
-            "email": "denis@menara.com.au",
-            "homepage": "https://www.menara.com.au"
+            "email": "denis@paragraph.ph",
+            "homepage": "https://paragraph.ph"
         }
     ],
     "require": {
@@ -24,7 +24,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Pushkin\\": "src/"
+            "Paragraph\\": "src/"
         },
         "files": [
             "helpers/helpers.php"
@@ -35,7 +35,7 @@
     "extra": {
         "laravel": {
             "providers": [
-                "Pushkin\\Providers\\PushkinServiceProvider"
+                "Paragraph\\Providers\\ParagraphServiceProvider"
             ]
         }
     }

@@ -1,6 +1,6 @@
 <?php
 
-namespace Pushkin;
+namespace Paragraph;
 
 use Hidehalo\Nanoid\Client;
 

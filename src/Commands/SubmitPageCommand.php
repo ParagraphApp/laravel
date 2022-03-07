@@ -1,11 +1,11 @@
 <?php
 
-namespace Pushkin\Commands;
+namespace Paragraph\Commands;
 
 use Illuminate\Console\Command;
-use Pushkin\Reader;
-use Pushkin\TranslatorContract;
-use Pushkin\WithPushkin;
+use Paragraph\Reader;
+use Paragraph\TranslatorContract;
+use Paragraph\WithParagraph;
 use Tests\CreatesApplication;
 
 class SubmitPageCommand extends Command
@@ -15,7 +15,7 @@ class SubmitPageCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'pushkin:submit-page';
+    protected $signature = 'paragraph:submit-page';
 
     /**
      * The console command description.
@@ -43,7 +43,7 @@ class SubmitPageCommand extends Command
     protected function render($url)
     {
         $client = new class extends \Illuminate\Foundation\Testing\TestCase {
-            use CreatesApplication, WithPushkin;
+            use CreatesApplication, WithParagraph;
 
             public function setApp($application)
             {

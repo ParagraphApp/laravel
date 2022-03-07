@@ -1,6 +1,6 @@
 <?php
 
-namespace Pushkin;
+namespace Paragraph;
 
 use PhpParser\Error;
 use PhpParser\Node\Expr\Variable;
@@ -9,8 +9,8 @@ use PhpParser\Node\Scalar\EncapsedStringPart;
 use PhpParser\Node\Stmt\Echo_;
 use PhpParser\Node\Stmt\InlineHTML;
 use PhpParser\ParserFactory;
-use Pushkin\Exceptions\FailedParsing;
-use Pushkin\Storage\LaravelStorage;
+use Paragraph\Exceptions\FailedParsing;
+use Paragraph\Storage\LaravelStorage;
 
 abstract class BaseTranslator {
     protected $input;
