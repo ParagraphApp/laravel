@@ -13,8 +13,8 @@ class Reader extends BaseTranslator implements TranslatorContract {
 
         static::$texts[] = $data;
 
-        $prefix = "<!-- pushkin-begin " . json_encode($data) . " -->";
-        $postfix = "<!-- pushkin-end -->";
+        $prefix = "<!-- paragraph-begin " . json_encode($data) . " -->";
+        $postfix = "<!-- paragraph-end -->";
 
         return $prefix . $this->input . $postfix;
     }

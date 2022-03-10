@@ -1,6 +1,6 @@
 <?php
 
-namespace Pushkin\Storage;
+namespace Paragraph\Storage;
 
 class MemoryStorage implements StorageContract {
     protected static $translations = [];

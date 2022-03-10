@@ -25,14 +25,14 @@ class ParagraphServiceProvider extends ServiceProvider {
 
         Blade::directive('p', function($expression) {
             if (! $expression) {
-                return "<?php \$pushkinStartLine = __LINE__; ob_start(); ?>";
+                return "<?php \$paragraphStartLine = __LINE__; ob_start(); ?>";
             }
 
             return "<?php echo p($expression); ?>";
         });
 
         Blade::directive('endp', function() {
-            return "<?php echo p(ob_get_clean(), \$pushkinStartLine, __LINE__); ?>";
+            return "<?php echo p(ob_get_clean(), \$paragraphStartLine, __LINE__); ?>";
         });
 
         $this->app['mail.manager']->extend('paragraph', function () {

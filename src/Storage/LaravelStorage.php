@@ -1,6 +1,6 @@
 <?php
 
-namespace Pushkin\Storage;
+namespace Paragraph\Storage;
 
 class LaravelStorage implements StorageContract {
     /**
@@ -9,7 +9,7 @@ class LaravelStorage implements StorageContract {
      */
     public static function loadTranslations($locale = 'default')
     {
-        $path = storage_path("pushkin_{$locale}.json");
+        $path = storage_path("paragraph_{$locale}.json");
 
         if (! file_exists($path) && ! $path = static::fallback($locale)) return [];
 
@@ -22,10 +22,10 @@ class LaravelStorage implements StorageContract {
      */
     protected static function fallback($locale)
     {
-        $files = scandir(dirname(storage_path("pushkin.json")));
+        $files = scandir(dirname(storage_path("paragraph.json")));
 
         $matches = array_filter($files, function($path) use ($locale) {
-            return preg_match('/^pushkin_'.$locale.'_[A-Z]{2}\.json$/', basename($path));
+            return preg_match('/^paragraph_'.$locale.'_[A-Z]{2}\.json$/', basename($path));
         });
 
         if (count($matches)) {
@@ -35,6 +35,6 @@ class LaravelStorage implements StorageContract {
 
     public static function saveTranslations($translations, $locale = 'default')
     {
-        file_put_contents(storage_path("pushkin_{$locale}.json"), json_encode($translations));
+        file_put_contents(storage_path("paragraph_{$locale}.json"), json_encode($translations));
     }
 }

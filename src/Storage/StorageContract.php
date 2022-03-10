@@ -1,6 +1,6 @@
 <?php
 
-namespace Pushkin\Storage;
+namespace Paragraph\Storage;
 
 interface StorageContract {
     public static function loadTranslations($locale);

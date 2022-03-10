@@ -36,7 +36,7 @@ class ReaderTest extends \PHPUnit\Framework\TestCase {
     public function direct_function_usage_can_be_parsed_as_well()
     {
         $output = p("Test me");
-        preg_match('/pushkin-begin (.+) -->.+<!--/', $output, $matches);
+        preg_match('/paragraph-begin (.+) -->.+<!--/', $output, $matches);
         $decoded = json_decode($matches[1], true);
         $this->assertNull($decoded['signature']);
         $this->assertEquals('Test me', $decoded['text']);
@@ -50,7 +50,7 @@ class ReaderTest extends \PHPUnit\Framework\TestCase {
     {
         $name = "baby";
         $output = p("Test me {$name}");
-        preg_match('/pushkin-begin (.+) -->.+<!--/', $output, $matches);
+        preg_match('/paragraph-begin (.+) -->.+<!--/', $output, $matches);
         $decoded = json_decode($matches[1], true);
         $this->assertEquals("Test me {name}", $decoded['signature']);
         $this->assertEquals('Test me baby', $decoded['text']);

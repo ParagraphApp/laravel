@@ -10,9 +10,9 @@
                     </div>
                     <div class="card-body">
                         <p class="card-text">
-                            <?php $pushkinStartLine = __LINE__; ob_start(); ?>
+                            <?php $paragraphStartLine = __LINE__; ob_start(); ?>
                                 <?php echo e($document->pages()->count()); ?> pages and <?php echo e(\App\Models\Entry::document($document)->count()); ?> processed entries
-                            <?php echo p(ob_get_clean(), $pushkinStartLine, __LINE__); ?>
+                            <?php echo p(ob_get_clean(), $paragraphStartLine, __LINE__); ?>
                         </p>
                         <p class="card-text">
                             <?php echo p('Source:', __LINE__); ?> <?php echo e($document->source); ?>
