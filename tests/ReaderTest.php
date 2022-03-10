@@ -39,7 +39,7 @@ class ReaderTest extends \PHPUnit\Framework\TestCase {
         preg_match('/paragraph-begin (.+) -->.+<!--/', $output, $matches);
         $decoded = json_decode($matches[1], true);
         $this->assertNull($decoded['signature']);
-        $this->assertEquals('Test me', $decoded['text']);
+        $this->assertEquals('Test me', $decoded['placeholder']);
         $this->assertStringContainsString('ReaderTest', $decoded['file']);
     }
 
@@ -53,7 +53,7 @@ class ReaderTest extends \PHPUnit\Framework\TestCase {
         preg_match('/paragraph-begin (.+) -->.+<!--/', $output, $matches);
         $decoded = json_decode($matches[1], true);
         $this->assertEquals("Test me {name}", $decoded['signature']);
-        $this->assertEquals('Test me baby', $decoded['text']);
+        $this->assertEquals('Test me baby', $decoded['placeholder']);
         $this->assertStringContainsString('ReaderTest', $decoded['file']);
     }
 }
