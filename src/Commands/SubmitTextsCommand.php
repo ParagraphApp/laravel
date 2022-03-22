@@ -4,6 +4,7 @@ namespace Paragraph\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Routing\Router;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use PhpParser\Error;
 use PhpParser\NodeDumper;
@@ -67,7 +68,34 @@ class SubmitTextsCommand extends Command
         $routes = $this->routes();
 
         $langPath = $this->findPath('lang', 'language files');
+
         $texts = $this->parseLanguageFiles($langPath);
+        $texts = $texts->reduce(function($carry, $file) {
+            foreach ($file['texts'] as $key => $translation) {
+                $source = trim(str_replace(base_path(''), '', $file['path']), DIRECTORY_SEPARATOR);
+
+                if (is_string($translation)) {
+                    $translation = [ $translation ];
+                }
+
+                if (is_array($translation)) {
+                    $flat = Arr::dot($translation);
+
+                    foreach ($flat as $subKey => $string) {
+                        $carry->push([
+                            'text' => $string,
+                            'locale' => $file['locale'],
+                            'source' => $source,
+                            'placeholder' => [
+                                'placeholder' => implode('.', array_filter([$file['key'], $subKey, $key]))
+                            ]
+                        ]);
+                    }
+                }
+            }
+
+            return $carry;
+        }, collect([]));
 
         $viewsPath = $this->findPath('views', 'Blade templates');
         $views = $this->parseViewTemplates($viewsPath);
@@ -124,6 +152,7 @@ class SubmitTextsCommand extends Command
         });
 
         $client = resolve(Client::class);
+        $client->submitTexts($texts);
 
         $expanded->each(function($page) use ($client) {
              $client->submitPage(null, $page['context'], Client::PAGE_TYPE_WEB, $page['name']);
@@ -134,7 +163,7 @@ class SubmitTextsCommand extends Command
 
             $this->extractStrings($contents)->each(function($string) use (&$carry, $view) {
                 $carry->push(array_merge($string, [
-                    'file' => str_replace(base_path(''), '', $view['path']),
+                    'file' => trim(str_replace(base_path(''), '', $view['path']), DIRECTORY_SEPARATOR),
                     'visible' => false,
                     'key' => $view['key']
                 ]));

@@ -54,6 +54,19 @@ class Client {
     }
 
     /**
+     * @param $texts
+     * @return bool
+     */
+    public function submitTexts($texts)
+    {
+        $response = $this->client->put("{$this->projectId}/texts", [
+            'json' => $texts
+        ]);
+
+        return true;
+    }
+
+    /**
      * @param $snapshot
      * @param $context
      * @param $type
