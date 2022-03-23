@@ -94,13 +94,13 @@ abstract class BaseTranslator {
     protected function getCurrentFilePath()
     {
         $currentFolder = dirname(__FILE__);
-        $stack = debug_backtrace();
 
-        $stack = array_filter($stack, function($call) use ($currentFolder) {
-            return isset($call['file']) && strpos($call['file'], $currentFolder) !== 0;
+        $stack = array_filter(debug_backtrace(), function($call) use ($currentFolder) {
+            return isset($call['file']) && strpos($call['file'], $currentFolder) !== 0 && strpos($call['file'], base_path('vendor')) !== 0;
         });
 
-        array_shift($stack);
+        if (! count($stack)) return;
+
         $lastCall = array_shift($stack);
 
         $basePath = function_exists('base_path') ? base_path() : dirname(dirname(__FILE__));
