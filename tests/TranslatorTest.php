@@ -15,7 +15,7 @@ class TranslatorTest extends \PHPUnit\Framework\TestCase {
             [
                 'text' => '{variable1} pages but also {variable2} processed entries',
                 'locale' => 'en_US',
-                'file' => '/vendor/phpunit/phpunit/src/Framework/TestCase.php',
+                'file' => 'tests/TranslatorTest.php',
                 'original_version' => '{variable1} pages and {variable2} processed entries'
             ]
         ], 'default');

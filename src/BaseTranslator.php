@@ -96,11 +96,10 @@ abstract class BaseTranslator {
         $currentFolder = dirname(__FILE__);
 
         $stack = array_filter(debug_backtrace(), function($call) use ($currentFolder) {
-            return isset($call['file']) && strpos($call['file'], $currentFolder) !== 0 && strpos($call['file'], base_path('vendor')) !== 0;
+            return isset($call['file']) && strpos($call['file'], $currentFolder) !== 0 && ! preg_match('/helpers\.php$/', $call['file']);
         });
 
         if (! count($stack)) return;
-
         $lastCall = array_shift($stack);
 
         $basePath = function_exists('base_path') ? base_path() : dirname(dirname(__FILE__));
@@ -108,10 +107,10 @@ abstract class BaseTranslator {
         if (preg_match('/storage\/framework\/views/', $lastCall['file'])) {
             preg_match('/\*\*PATH (.+\.blade\.php) ENDPATH\*\*/', file_get_contents($lastCall['file']), $matches);
 
-            return str_replace($basePath, '', $matches[1]);
+            return trim(str_replace($basePath, '', $matches[1]), DIRECTORY_SEPARATOR);
         }
 
-        return str_replace($basePath, '', $lastCall['file']);
+        return trim(str_replace($basePath, '', $lastCall['file']), DIRECTORY_SEPARATOR);
     }
 
     /*

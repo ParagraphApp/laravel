@@ -18,7 +18,7 @@ class PerformanceTest extends \PHPUnit\Framework\TestCase {
             return [
                 'text' => 'Some random text',
                 'locale' => 'en_US',
-                'file' => '/vendor/phpunit/phpunit/src/Framework/TestCase.php',
+                'file' => 'tests/PerformanceTest.php',
                 'original_version' => 'Another random text'
             ];
         }, range(1, 5000));
@@ -26,7 +26,7 @@ class PerformanceTest extends \PHPUnit\Framework\TestCase {
         $translations[] = [
                 'text' => '{variable1} pages but also {variable2} processed entries',
                 'locale' => 'en_US',
-                'file' => '/vendor/phpunit/phpunit/src/Framework/TestCase.php',
+                'file' => 'tests/PerformanceTest.php',
                 'original_version' => '{variable1} pages and {variable2} processed entries'
             ];
 
