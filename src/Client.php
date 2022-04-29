@@ -37,7 +37,7 @@ class Client {
             ])
         ]);
 
-        return json_decode($response->getBody(), true);
+        return json_decode($response->getBody(), true)['data'];
     }
 
     /**
@@ -61,6 +61,18 @@ class Client {
     {
         $response = $this->client->put("{$this->projectId}/texts", [
             'json' => $texts
+        ]);
+
+        return true;
+    }
+
+    /**
+     * @param $updates
+     */
+    public function updateProject($updates)
+    {
+        $response = $this->client->put("{$this->projectId}", [
+            'json' => $updates
         ]);
 
         return true;

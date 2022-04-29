@@ -33,8 +33,22 @@ class LaravelStorage implements StorageContract {
         }
     }
 
-    public static function saveTranslations($translations, $locale = 'default')
+    public static function saveTranslations($texts)
     {
-        file_put_contents(storage_path("paragraph_{$locale}.json"), json_encode($translations));
+        $locales = [];
+
+        foreach ($texts as $text) {
+            $localeKey = $text['locale'];
+
+            if (! isset($locales[$localeKey])) {
+                $locales[$localeKey] = [];
+            }
+
+            $locales[$localeKey][] = $text;
+        }
+
+        foreach ($locales as $key => $texts) {
+            file_put_contents(storage_path("paragraph_{$key}.json"), json_encode($texts));
+        }
     }
 }

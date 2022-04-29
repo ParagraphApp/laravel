@@ -9,7 +9,7 @@ use Paragraph\Client;
 use Paragraph\Commands\InitialiseCommand;
 use Paragraph\Mailer;
 use Illuminate\Support\Facades\Blade;
-use Paragraph\Commands\DownloadTranslationsCommand;
+use Paragraph\Commands\DownloadTextsCommand;
 use Paragraph\Commands\SubmitTextsCommand;
 use Paragraph\Commands\SubmitPageCommand;
 use Paragraph\ProxyTranslator;
@@ -41,7 +41,7 @@ class ParagraphServiceProvider extends ServiceProvider {
 
         if ($this->app->runningInConsole()) {
             $this->commands([
-                DownloadTranslationsCommand::class,
+                DownloadTextsCommand::class,
                 SubmitTextsCommand::class,
                 SubmitPageCommand::class,
                 InitialiseCommand::class,

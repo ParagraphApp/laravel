@@ -6,7 +6,7 @@ use Paragraph\Client;
 use Paragraph\Storage\LaravelStorage;
 use Illuminate\Console\Command;
 
-class DownloadTranslationsCommand extends Command
+class DownloadTextsCommand extends Command
 {
     /**
      * The name and signature of the console command.
@@ -20,7 +20,7 @@ class DownloadTranslationsCommand extends Command
      *
      * @var string
      */
-    protected $description = 'Download new Paragraph translations and text updates';
+    protected $description = 'Download current Paragraph texts';
 
     /**
      * @var Client
@@ -36,9 +36,9 @@ class DownloadTranslationsCommand extends Command
     {
         $client = resolve(Client::class);
 
-        $translations = $client->downloadTexts($this->option('locale'));
-        $this->info("Fetched a total of " . count($translations) . " translations");
+        $texts = $client->downloadTexts($this->option('locale'));
+        $this->info("Fetched a total of " . count($texts) . " texts");
 
-        LaravelStorage::saveTranslations($translations, $this->option('locale') ?: 'default');
+        LaravelStorage::saveTranslations($texts);
     }
 }
