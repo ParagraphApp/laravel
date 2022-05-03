@@ -19,24 +19,6 @@ class ProxyTranslator implements Translator {
     }
 
     /**
-     * @param $translations
-     * @param $locale
-     */
-    protected function loadTranslations($translations, $locale)
-    {
-        $normalised = [];
-
-        foreach ($translations as $translation) {
-            $key = preg_match('/\./', $translation['placeholder']) ? $translation['placeholder'] : '*.' . $translation['placeholder']; 
-            $normalised[$key] = $translation['text'];
-        }
-
-        $this->laravelTranslator->addLines($normalised, $locale);
-
-        $this->loaded[] = $locale;
-    }
-
-    /**
      * @param string $key
      * @param array $replace
      * @param null $locale
@@ -44,20 +26,15 @@ class ProxyTranslator implements Translator {
      */
     public function get($key, array $replace = [], $locale = null)
     {
-        $locale = $locale ?: $this->laravelTranslator->getLocale();
+        $this->loadTextsIfNeeded($locale);
 
-        if (! in_array($locale, $this->loaded)) {
-            $translations = LaravelStorage::loadTranslations($locale);
-            $this->loadTranslations($translations, $locale);
-        }
-
-        $translation = $this->laravelTranslator->get($key, $replace, $locale);
-
-        return is_string($translation) ? p($translation) : $translation;
+        return $this->laravelTranslator->get($key, $replace, $locale);
     }
 
     public function choice($key, $number, array $replace = [], $locale = null)
     {
+        $this->loadTextsIfNeeded($locale);
+
         return $this->laravelTranslator->choice($key, $number, $replace, $locale);
     }
 
@@ -69,5 +46,33 @@ class ProxyTranslator implements Translator {
     public function setLocale($locale)
     {
         $this->laravelTranslator->setLocale($locale);
+    }
+
+    protected function loadTextsIfNeeded($locale)
+    {
+        $locale = $locale ?: $this->getLocale();
+
+        if (! in_array($locale, $this->loaded)) {
+            $texts = LaravelStorage::loadTranslations($locale);
+            $this->transformTexts($texts, $locale);
+        }
+    }
+
+    /**
+     * @param $texts
+     * @param $locale
+     */
+    protected function transformTexts($texts, $locale)
+    {
+        $normalised = [];
+
+        foreach ($texts as $text) {
+            $key = preg_match('/\./', $text['placeholder']) ? $text['placeholder'] : '*.' . $text['placeholder'];
+            $normalised[$key] = $text['text'];
+        }
+
+        $this->laravelTranslator->addLines($normalised, $locale);
+
+        $this->loaded[] = $locale;
     }
 }
