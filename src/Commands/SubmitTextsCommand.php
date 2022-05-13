@@ -96,6 +96,7 @@ class SubmitTextsCommand extends Command
 
             return $carry;
         }, collect([]));
+        dd($texts);
 
         $viewsPath = $this->findPath('views', 'Blade templates');
         $views = $this->parseViewTemplates($viewsPath);
@@ -298,8 +299,9 @@ class SubmitTextsCommand extends Command
             $key = str_replace($path, '', $file->getPathname());
             $key = ltrim($key, '//');
             $key = preg_replace('/(?:\.php|\.json)$/', '', $key);
-            $key = str_replace(DIRECTORY_SEPARATOR, '.', $key);
-            list ($locale, $key) = explode('.', $key . '.', 3);
+            $elements = explode(DIRECTORY_SEPARATOR, $key, 2);
+            $locale = $elements[0];
+            $key = end($elements);
 
             $texts = preg_match('/\.php$/', $file->getPathname()) ? require($file->getPathname()) : json_decode(file_get_contents($file->getPathname()), true);
 
