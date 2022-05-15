@@ -53,7 +53,14 @@ trait WithParagraph {
     {
         // Get controller name
         $action = $this->app['router']->getRoutes()->match(request()->create($uri, $method))->getAction();
-        $context = $action['uses'];
+
+        if (is_callable($action['uses'])) {
+            $closure = new \ReflectionFunction($action['uses']);
+            $context = "Closure ".basename($closure->getFileName()).":{$closure->getStartLine()}";
+        } else {
+            $context = $action['uses'];
+        }
+
         $client = $this->app[Client::class];
 
         $client->submitPage(
