@@ -96,7 +96,6 @@ class SubmitTextsCommand extends Command
 
             return $carry;
         }, collect([]));
-        dd($texts);
 
         $viewsPath = $this->findPath('views', 'Blade templates');
         $views = $this->parseViewTemplates($viewsPath);
