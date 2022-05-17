@@ -44,6 +44,8 @@ class SubmitTextsCommand extends Command
 
     protected $ignoredFolders = ['vendor', 'storage', 'node_modules'];
 
+    protected $client;
+
     const PATH_OPTION_MANUAL = 'My template path is not in the list';
 
     /**
@@ -65,8 +67,10 @@ class SubmitTextsCommand extends Command
      */
     public function handle()
     {
-        $routes = $this->routes();
+        $this->client = resolve(Client::class);
+        $this->setBaseLocaleIfNeeded();
 
+        $routes = $this->routes();
         $langPath = $this->findPath('lang', 'language files');
 
         $texts = $this->parseLanguageFiles($langPath);
@@ -151,11 +155,10 @@ class SubmitTextsCommand extends Command
             return ! empty($route['views']);
         });
 
-        $client = resolve(Client::class);
-        $client->submitTexts($texts);
+        $this->client->submitTexts($texts);
 
-        $expanded->each(function($page) use ($client) {
-             $client->submitPage(null, $page['context'], Client::PAGE_TYPE_WEB, $page['name']);
+        $expanded->each(function($page) {
+             $this->client->submitPage(null, $page['context'], Client::PAGE_TYPE_WEB, $page['name']);
         });
 
         $texts = $views->reduce(function($carry, $view) {
@@ -172,26 +175,20 @@ class SubmitTextsCommand extends Command
             return $carry;
         }, collect([]))->groupBy('key');
 
-        $expanded = $expanded->map(function($route) use ($texts) {
-            $route['texts'] = collect($route['views'])->reduce(function($carry, $view) use ($texts, $route) {
-                if ($texts->has($view)) {
-                    $carry[] = $texts->get($view)->map(function($text) use ($route) {
-                        $text['context'] = $route['context'];
-                        return $text;
-                    });
-                }
+        $texts = $texts->map(function($text, $viewKey) use ($expanded) {
+            $routeMatch = $expanded->first(fn($r) => in_array($viewKey, $r['views']));
 
-                return $carry;
-            }, []);
+            if ($routeMatch) {
+                $text['context'] = $routeMatch['context'];
+            }
 
-            return $route;
-        });
+            return $text;
+        })->flatten(1);
 
-        $texts = $expanded->pluck('texts')->flatten(2);
         $this->line("Found {$texts->count()} texts in the view templates");
 
         $this->info("Sending to Paragraph");
-        $client->submitPlaceholders($texts->toArray());
+        $this->client->submitPlaceholders($texts->toArray());
         $this->info("Done!");
     }
 
@@ -359,5 +356,28 @@ class SubmitTextsCommand extends Command
         }
 
         return $viewsPath;
+    }
+
+    protected function setBaseLocaleIfNeeded()
+    {
+        $projectDetails = $this->client->getProject();
+
+        if ($baseLocale = collect($projectDetails['locales'])->first(fn($l) => isset($l['base']))) {
+            return;
+        }
+
+        $laravelLocale = config('app.fallback_locale');
+        $answer = $this->choice("There is no base locale set. Would you like to set '{$laravelLocale}' as default locale?", [
+            'Yes',
+            'No'
+        ], 0);
+
+        if ($answer == 'No') {
+            return;
+        }
+
+        $this->client->updateProject([
+            'base_locale' => $laravelLocale
+        ]);
     }
 }

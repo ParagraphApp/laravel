@@ -41,6 +41,29 @@ class Client {
     }
 
     /**
+     * @return bool
+     */
+    public function getProject()
+    {
+        $response = $this->client->get($this->projectId);
+
+        return json_decode($response->getBody(), true);
+    }
+
+    /**
+     * @param $updates
+     * @return bool
+     */
+    public function updateProject($updates)
+    {
+        $response = $this->client->put($this->projectId, [
+            'json' => $updates
+        ]);
+
+        return true;
+    }
+
+    /**
      * @param $texts
      * @return bool
      */
@@ -61,18 +84,6 @@ class Client {
     {
         $response = $this->client->put("{$this->projectId}/texts", [
             'json' => $texts
-        ]);
-
-        return true;
-    }
-
-    /**
-     * @param $updates
-     */
-    public function updateProject($updates)
-    {
-        $response = $this->client->put("{$this->projectId}", [
-            'json' => $updates
         ]);
 
         return true;
