@@ -36,4 +36,4 @@ Sign up for a free account on https://paragraph.ph
 
 ## Tutorials
 
-Detailed tutorials explaining how to localize Laravel application are available in our blog https://medium.com/@paragraph-dev
+Detailed tutorials explaining how to localize Laravel application are available in our blog https://paragraph.ph/blog
