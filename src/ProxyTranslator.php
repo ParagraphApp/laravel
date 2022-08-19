@@ -27,8 +27,16 @@ class ProxyTranslator implements Translator {
     public function get($key, array $replace = [], $locale = null)
     {
         $this->loadTextsIfNeeded($locale);
+        $text = $this->laravelTranslator->get($key, $replace, $locale);
 
-        return $this->laravelTranslator->get($key, $replace, $locale);
+        if ($text != $key) {
+            $existing = [
+                'text' => $text,
+                'locale' => $this->getLocale()
+            ];
+        }
+
+        return p($key, null, null, $existing ?? null);
     }
 
     public function choice($key, $number, array $replace = [], $locale = null)

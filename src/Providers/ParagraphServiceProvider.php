@@ -3,10 +3,14 @@
 namespace Paragraph\Providers;
 
 use Illuminate\Contracts\Support\DeferrableProvider;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Translation\TranslationServiceProvider;
 use Paragraph\Client;
+use Paragraph\Commands\ClearRenderedViewsCommand;
 use Paragraph\Commands\InitialiseCommand;
+use Paragraph\Commands\SubmitRenderedViewsCommand;
+use Paragraph\Hooks\ProcessViewIfNecessary;
 use Paragraph\Mailer;
 use Illuminate\Support\Facades\Blade;
 use Paragraph\Commands\DownloadTextsCommand;
@@ -20,8 +24,6 @@ class ParagraphServiceProvider extends ServiceProvider {
     public function boot()
     {
         $this->mergeConfigFrom(__DIR__.DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.'config/paragraph.php', 'paragraph');
-
-        $this->app->bind(TranslatorContract::class, Translator::class);
 
         Blade::directive('p', function($expression) {
             if (! $expression) {
@@ -45,6 +47,8 @@ class ParagraphServiceProvider extends ServiceProvider {
                 SubmitTextsCommand::class,
                 SubmitPageCommand::class,
                 InitialiseCommand::class,
+                ClearRenderedViewsCommand::class,
+                SubmitRenderedViewsCommand::class,
             ]);
         }
 
@@ -57,5 +61,8 @@ class ParagraphServiceProvider extends ServiceProvider {
 
         $laravel = resolve('translator');
         $this->app->instance('translator', new ProxyTranslator($laravel));
+
+        View::composer('*', ProcessViewIfNecessary::class);
+        config(['paragraph.composer_enabled' => true]);
     }
 }
