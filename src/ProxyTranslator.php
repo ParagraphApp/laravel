@@ -28,10 +28,12 @@ class ProxyTranslator implements Translator {
     {
         $this->loadTextsIfNeeded($locale);
         $text = $this->laravelTranslator->get($key, $replace, $locale);
+        $textRaw = $this->laravelTranslator->get($key, [], $locale);
 
         if ($text != $key) {
             $existing = [
-                'text' => $text,
+                'text' => $textRaw,
+                'compiled' => $text,
                 'locale' => $this->getLocale()
             ];
         }
