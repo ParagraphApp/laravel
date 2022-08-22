@@ -6,6 +6,7 @@ use Illuminate\Contracts\Support\DeferrableProvider;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Translation\TranslationServiceProvider;
+use Illuminate\View\Factory;
 use Paragraph\Client;
 use Paragraph\Commands\ClearRenderedViewsCommand;
 use Paragraph\Commands\InitialiseCommand;
@@ -63,6 +64,19 @@ class ParagraphServiceProvider extends ServiceProvider {
         $this->app->instance('translator', new ProxyTranslator($laravel));
 
         View::composer('*', ProcessViewIfNecessary::class);
+
+        View::macro('getFactory', function() {
+            return $this->factory;
+        });
+
+        View::macro('getPath', function() {
+            return $this->path;
+        });
+
+        Factory::macro('getRenderCount', function() {
+            return $this->renderCount;
+        });
+
         config(['paragraph.composer_enabled' => true]);
     }
 }

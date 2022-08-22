@@ -87,10 +87,10 @@ class Client {
      * @param null $state
      * @return bool
      */
-    public function submitPage($snapshot, $context = null, $type = Client::PAGE_TYPE_WEB, $name = 'Untitled', $sequence = null, $state = null)
+    public function submitPage($snapshot, $context = null, $type = null, $name = null, $sequence = null, $state = null)
     {
         $response = $this->client->post("{$this->projectId}/pages", [
-            'json' => compact('snapshot', 'context', 'type', 'name', 'sequence', 'state')
+            'json' => array_filter(compact('snapshot', 'context', 'type', 'name', 'sequence', 'state'), fn($v) => ! is_null($v))
         ]);
 
         return true;
