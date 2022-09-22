@@ -160,7 +160,13 @@ class Reader {
 
         if (function_exists('request')) {
             if (request() && request()->route()) {
-                return request()->route()->getActionName();
+                $name = request()->route()->getActionName();
+
+                if ($name == 'Closure') {
+                    $name .= ' ' . implode('|', request()->route()->methods) . ' ' . request()->route()->uri;
+                }
+
+                return $name;
             }
         }
     }

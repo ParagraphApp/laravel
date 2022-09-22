@@ -3,29 +3,29 @@
 namespace Paragraph;
 
 class Paragraph {
+    protected static $composerEnabled = true;
+
+    protected static $readerEnabled = false;
+
     public static function enableReader()
     {
-        config([
-            'paragraph.composer_enabled' => false,
-            'paragraph.reader_enabled' => true
-        ]);
+        static::$composerEnabled = false;
+        static::$readerEnabled = true;
     }
 
     public static function disableReader()
     {
-        config([
-            'paragraph.composer_enabled' => true,
-            'paragraph.reader_enabled' => false
-        ]);
+        static::$composerEnabled = true;
+        static::$readerEnabled = false;
     }
 
     public static function isComposerEnabled()
     {
-        return (bool) config('paragraph.composer_enabled');
+        return static::$composerEnabled;
     }
 
     public static function isReaderEnabled()
     {
-        return ! config('paragraph.composer_enabled') && config('paragraph.reader_enabled');
+        return ! static::$composerEnabled && static::$readerEnabled;
     }
 }
