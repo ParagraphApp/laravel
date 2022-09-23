@@ -96,7 +96,6 @@ class SubmitTextsCommand extends Command
 
             return $carry;
         }, collect([]));
-        //dd($texts);
 
         $viewsPath = $this->findPath('views', 'Blade templates');
         $views = $this->parseViewTemplates($viewsPath);
@@ -239,7 +238,7 @@ class SubmitTextsCommand extends Command
                 return ! empty(array_intersect(['GET', 'POST'], $route->methods())) && $route->getActionName() != 'Closure';
             })
             ->map(function ($route) {
-                list ($class, $method) = explode('@', $route->getActionName());
+                list ($class, $method) = explode('@', $route->getActionName() . '@');
 
                 return [
                     'method' => implode('|', $route->methods()),
