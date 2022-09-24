@@ -14,6 +14,12 @@ if (! function_exists('p')) {
             return $text['compiled'] ?? $input;
         }
 
+        if (! $text && function_exists('app')) {
+            $text = [
+                'locale' => app()->getLocale()
+            ];
+        }
+
         return resolve(\Paragraph\Reader::class, compact('input', 'startLine', 'endLine', 'text'))
             ->tag();
     }

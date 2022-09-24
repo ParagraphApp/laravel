@@ -18,6 +18,7 @@ use Paragraph\Commands\DownloadTextsCommand;
 use Paragraph\Commands\SubmitTextsCommand;
 use Paragraph\Commands\SubmitPageCommand;
 use Paragraph\ProxyTranslator;
+use Paragraph\Paragraph;
 use Paragraph\Translator;
 use Paragraph\TranslatorContract;
 
@@ -77,6 +78,6 @@ class ParagraphServiceProvider extends ServiceProvider {
             return $this->renderCount;
         });
 
-        config(['paragraph.composer_enabled' => true]);
+        Paragraph::disableReader();
     }
 }
