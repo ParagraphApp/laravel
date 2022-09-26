@@ -57,6 +57,8 @@ class Reader {
 
         if (preg_match_all('/ob_start\(\); \?>(.+?)(?=<\?php echo p\(ob_get_clean)/s', $this->source, $matches)) {
             $this->mode = $this::MODE_DIRECTIVE;
+        } else if (preg_match_all('/ob_start\(\); \?>(.+?)(?=<\?php \\\Paragraph\\\Paragraph::\$endLine)/s', $this->source, $matches)) {
+            $this->mode = $this::MODE_DIRECTIVE;
         } else if (preg_match_all('/startTranslation\(.*\); \?>(.+?)(?=<\?php \\\Paragraph\\\Paragraph::\$endLine)/s', $this->source, $matches)) {
             $this->mode = $this::MODE_DIRECTIVE;
         } else if (preg_match_all('/app\(\'translator\'\)->get\((.+?)(?=\))/', $this->source, $matches)) {
