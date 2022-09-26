@@ -29,7 +29,7 @@ class ParagraphServiceProvider extends ServiceProvider {
 
         $openTagHandler = function($expression) {
             if (! $expression) {
-                return "<?php \\Paragraph\\Paragraph::\$startLine = __LINE__; ob_start(); ?>";
+                return "<?php \\Paragraph\\Paragraph::\$startLine = __LINE__; \$__env->startTranslation(); ?>";
             } else if ($expression[0] == '[') {
                 return "<?php \\Paragraph\\Paragraph::\$startLine = __LINE__; \$__env->startTranslation($expression); ?>";
             }
