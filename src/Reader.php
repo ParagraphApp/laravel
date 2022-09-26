@@ -54,7 +54,6 @@ class Reader {
     public function findSource()
     {
         $this->source = $this->readLines();
-        \Log::info('source = '. $this->source . ' start = ' . \Paragraph\Paragraph::$startLine . ' end = ' . \Paragraph\Paragraph::$endLine);
 
         if (preg_match_all('/ob_start\(\); \?>(.+?)(?=<\?php echo p\(ob_get_clean)/s', $this->source, $matches)) {
             $this->mode = $this::MODE_DIRECTIVE;
@@ -93,7 +92,7 @@ class Reader {
             return trim(str_replace($basePath, '', $matches[1]), DIRECTORY_SEPARATOR);
         }
 
-        return trim(str_replace($basePath, '', $lastCall['file']), DIRECTORY_SEPARATOR);
+        return trim(str_replace($basePath, '', $this->file), DIRECTORY_SEPARATOR);
     }
 
     /**
