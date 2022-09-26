@@ -72,7 +72,7 @@ class Reader {
 
         return [
             'placeholder' => trim($this->input),
-            'file' => $this->getCurrentFilePath(),
+            'file' => $this->humanReadableFilePath(),
             'context' => $this->context(),
             'location' => Paragraph::$startLine,
             'text' => $this->text
@@ -80,9 +80,9 @@ class Reader {
     }
 
     /**
-     * @return array|string|string[]
+     * @return string
      */
-    protected function getCurrentFilePath()
+    protected function humanReadableFilePath()
     {
         $basePath = function_exists('base_path') ? base_path() : dirname(dirname(__FILE__));
 
