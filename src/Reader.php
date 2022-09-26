@@ -2,6 +2,7 @@
 
 namespace Paragraph;
 
+use Paragraph\Paragraph;
 use PhpParser\Error;
 use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\Scalar\Encapsed;
@@ -18,10 +19,6 @@ class Reader {
     protected $file;
 
     protected $stack;
-
-    protected $startLine;
-
-    protected $endLine;
 
     protected $source;
 
@@ -40,11 +37,9 @@ class Reader {
 
     protected static $placeholders = [];
 
-    public function __construct($input, $startLine = null, $endLine = null, $text = null)
+    public function __construct($input, $text = null)
     {
         $this->input = $input;
-        $this->startLine = $startLine;
-        $this->endLine = $endLine;
         $this->text = $text;
         $this->parser = (new ParserFactory)->create(ParserFactory::PREFER_PHP7);
     }
@@ -59,9 +54,14 @@ class Reader {
     public function findSource()
     {
         $this->source = $this->readLines();
+        \Log::info('source = '. $this->source . ' start = ' . \Paragraph\Paragraph::$startLine . ' end = ' . \Paragraph\Paragraph::$endLine);
 
         if (preg_match_all('/ob_start\(\); \?>(.+?)(?=<\?php echo p\(ob_get_clean)/s', $this->source, $matches)) {
             $this->mode = $this::MODE_DIRECTIVE;
+        } else if (preg_match_all('/startTranslation\(.*\); \?>(.+?)(?=<\?php \\\Paragraph\\\Paragraph::\$endLine)/s', $this->source, $matches)) {
+            $this->mode = $this::MODE_DIRECTIVE;
+        } else if (preg_match_all('/app\(\'translator\'\)->get\((.+?)(?=\))/', $this->source, $matches)) {
+            $this->mode = $this::MODE_HELPER_FUNCTION;
         } else if (preg_match_all('/p\((.+?)(?=\))/', $this->source, $matches)) {
             $this->mode = $this::MODE_HELPER_FUNCTION;
         }
@@ -70,20 +70,12 @@ class Reader {
 
         $index = $this->getCurrentLineIndex(count($matches[1]));
         if (! isset($matches[1][$index])) throw new FailedParsing("Unable to locate call #{$index}");
-        $clean = $this->mode == $this::MODE_DIRECTIVE ? $matches[1][$index] : "<?php " . $matches[1][$index] . ";";
-
-        try {
-            $ast = $this->parser->parse($clean);
-            $signature = $this->findSignature($ast);
-        } catch (Error $error) {
-            //dd("Parse error: {$error->getMessage()}\n");
-        }
 
         return [
             'placeholder' => trim($this->input),
             'file' => $this->getCurrentFilePath(),
             'context' => $this->context(),
-            'location' => $this->startLine,
+            'location' => Paragraph::$startLine,
             'text' => $this->text
         ];
     }
@@ -93,53 +85,15 @@ class Reader {
      */
     protected function getCurrentFilePath()
     {
-        $currentFolder = dirname(__FILE__);
-
-        $stack = array_filter(debug_backtrace(), function($call) use ($currentFolder) {
-            return isset($call['file']) && strpos($call['file'], $currentFolder) !== 0 && ! preg_match('/helpers\.php$/', $call['file']);
-        });
-
-        if (! count($stack)) return;
-        $lastCall = array_shift($stack);
-
         $basePath = function_exists('base_path') ? base_path() : dirname(dirname(__FILE__));
 
-        if (preg_match('/storage\/framework\/views/', $lastCall['file'])) {
-            preg_match('/\*\*PATH (.+\.blade\.php) ENDPATH\*\*/', file_get_contents($lastCall['file']), $matches);
+        if (preg_match('/storage\/framework\/views/', $this->file)) {
+            preg_match('/\*\*PATH (.+\.blade\.php) ENDPATH\*\*/', file_get_contents($this->file), $matches);
 
             return trim(str_replace($basePath, '', $matches[1]), DIRECTORY_SEPARATOR);
         }
 
         return trim(str_replace($basePath, '', $lastCall['file']), DIRECTORY_SEPARATOR);
-    }
-
-    /*
-     * @return string
-     */
-    public function findSignature(array $nodes)
-    {
-        $variableCount = 0;
-
-        if ($this->mode == $this::MODE_DIRECTIVE) {
-            return implode('', array_filter(array_map(function($node) use (&$variableCount) {
-                if ($node instanceof InlineHTML) {
-                    return $node->value;
-                }
-
-                if ($node instanceof Echo_) {
-                    return "{variable".++$variableCount."}";
-                }
-            }, $nodes)));
-        }
-
-        if (! $nodes[0]->expr instanceof Encapsed) {
-            return;
-        }
-
-        return implode('', array_map(function($part) use (&$variableCount) {
-            if ($part instanceof EncapsedStringPart) return $part->value;
-            if ($part instanceof Variable) return "{" . ($part->name ?: "variable".++$variableCount) . "}";
-        }, $nodes[0]->expr->parts));
     }
 
     /**
@@ -175,17 +129,20 @@ class Reader {
     {
         $this->stack = debug_backtrace();
         $currentFolder = dirname(__FILE__);
-
         $this->stack = array_filter($this->stack, function($call) use ($currentFolder) {
             return isset($call['file']) && strpos($call['file'], $currentFolder) !== 0;
         });
 
         array_shift($this->stack);
 
-        $this->file = $this->stack[0]['file'];
+        if (preg_match('/ManagesTranslations\.php$/', $this->stack[0]['file'])) {
+            array_shift($this->stack);
+        }
 
-        if (! $this->startLine) {
-            $this->startLine = $this->stack[0]['line'];
+        $this->setFile($this->stack[0]['file']);
+
+        if (! Paragraph::$startLine) {
+            Paragraph::$startLine = $this->stack[0]['line'];
         }
     }
 
@@ -203,6 +160,7 @@ class Reader {
     public function tag()
     {
         $data = $this->findSource();
+        Paragraph::resetLines();
 
         static::$placeholders[] = $data;
 
@@ -228,8 +186,8 @@ class Reader {
         if (! $this->file) $this->findActualFile();
         $lines = file($this->file);
 
-        $count = $this->endLine ? $this->endLine - $this->startLine + 1 : 1;
-        $currentPosition = implode(':', [$this->file, $this->startLine]);
+        $count = Paragraph::$endLine ? Paragraph::$endLine - Paragraph::$startLine + 1 : 1;
+        $currentPosition = implode(':', [$this->file, Paragraph::$startLine]);
 
         if ($currentPosition == static::$currentPosition) {
             static::$currentIndex++;
@@ -238,6 +196,6 @@ class Reader {
             static::$currentIndex = 0;
         }
 
-        return implode('', array_slice($lines, $this->startLine - 1, $count));
+        return implode('', array_slice($lines, Paragraph::$startLine - 1, $count));
     }
 }

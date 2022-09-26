@@ -39,7 +39,7 @@ class ProxyTranslator implements Translator {
             $existing['compiled'] = $text;
         }
 
-        return p($key, null, null, $existing);
+        return p($key, $existing);
     }
 
     public function choice($key, $number, array $replace = [], $locale = null)

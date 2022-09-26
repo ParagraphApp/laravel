@@ -27,17 +27,24 @@ class ParagraphServiceProvider extends ServiceProvider {
     {
         $this->mergeConfigFrom(__DIR__.DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.'config/paragraph.php', 'paragraph');
 
-        Blade::directive('p', function($expression) {
+        $openTagHandler = function($expression) {
             if (! $expression) {
-                return "<?php \$paragraphStartLine = __LINE__; ob_start(); ?>";
+                return "<?php \\Paragraph\\Paragraph::\$startLine = __LINE__; ob_start(); ?>";
+            } else if ($expression[0] == '[') {
+                return "<?php \\Paragraph\\Paragraph::\$startLine = __LINE__; \$__env->startTranslation($expression); ?>";
             }
 
-            return "<?php echo p($expression); ?>";
-        });
+            return "<?php echo app('translator')->get($expression); ?>";
+        };
 
-        Blade::directive('endp', function() {
-            return "<?php echo p(ob_get_clean(), \$paragraphStartLine, __LINE__); ?>";
-        });
+        $closeTagHandler = function() {
+            return "<?php \\Paragraph\\Paragraph::\$endLine = __LINE__; echo \$__env->renderTranslation(); ?>";
+        };
+
+        Blade::directive('p', $openTagHandler);
+        Blade::directive('endp', $closeTagHandler);
+        Blade::directive('lang', $openTagHandler);
+        Blade::directive('endlang', $closeTagHandler);
 
         $this->app['mail.manager']->extend('paragraph', function () {
             return new Mailer();

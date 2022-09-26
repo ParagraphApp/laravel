@@ -7,6 +7,10 @@ class Paragraph {
 
     protected static $readerEnabled = false;
 
+    public static $startLine;
+
+    public static $endLine;
+
     public static function enableReader()
     {
         static::$composerEnabled = false;
@@ -27,5 +31,11 @@ class Paragraph {
     public static function isReaderEnabled()
     {
         return ! static::$composerEnabled && static::$readerEnabled;
+    }
+
+    public static function resetLines()
+    {
+        static::$startLine = null;
+        static::$endLine = null;
     }
 }

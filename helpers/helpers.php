@@ -8,19 +8,13 @@ if (! function_exists('p')) {
      * @param array $text
      * @return string
      */
-    function p($input, $startLine = null, $endLine = null, $text = null)
+    function p($input, $text = null)
     {
         if (! \Paragraph\Paragraph::isReaderEnabled()) {
             return $text['compiled'] ?? $input;
         }
 
-        if (! $text && function_exists('app')) {
-            $text = [
-                'locale' => app()->getLocale()
-            ];
-        }
-
-        return resolve(\Paragraph\Reader::class, compact('input', 'startLine', 'endLine', 'text'))
+        return resolve(\Paragraph\Reader::class, compact('input', 'text'))
             ->tag();
     }
 }
