@@ -65,12 +65,12 @@ trait WithParagraph {
             WithParagraph::$currentState
         );
 
-        $client->submitPlaceholders(
+/**        $client->submitPlaceholders(
             array_map(function($text) {
                 $text['visible'] = false;
                 return $text;
             }, array_filter(Reader::texts(), fn($t) => ! preg_match('/\.blade\.php$/', $t['file'])))
-        );
+        ); **/
 
         if (! WithParagraph::$currentlyInSequence) {
             WithParagraph::reset();
