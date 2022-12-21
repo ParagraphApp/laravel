@@ -5,6 +5,7 @@ namespace Paragraph;
 use Illuminate\Foundation\Mix;
 use Illuminate\Support\Str;
 use Paragraph\Exceptions\FailedRequestException;
+use Paragraph\Storage\ViewStorage;
 
 trait WithParagraph {
     public static $currentPageName;
@@ -53,24 +54,16 @@ trait WithParagraph {
     {
         // Get controller name
         $action = $this->app['router']->getRoutes()->match(request()->create($uri, $method))->getAction();
-        $context = $action['uses'];
         $client = $this->app[Client::class];
 
         $client->submitPage(
             $contents,
-            $context,
+            null,
             Client::PAGE_TYPE_WEB,
             WithParagraph::$currentPageName,
             WithParagraph::$currentSequenceName,
             WithParagraph::$currentState
         );
-
-/**        $client->submitPlaceholders(
-            array_map(function($text) {
-                $text['visible'] = false;
-                return $text;
-            }, array_filter(Reader::texts(), fn($t) => ! preg_match('/\.blade\.php$/', $t['file'])))
-        ); **/
 
         if (! WithParagraph::$currentlyInSequence) {
             WithParagraph::reset();
@@ -95,7 +88,9 @@ trait WithParagraph {
             throw new FailedRequestException("Failed web request, code: {$response->getStatusCode()}, contents: {$fragment}");
         }
 
-        $this->submitPage($response->getContent(), $uri, 'GET');
+        if (file_exists(ViewStorage::$lastSavedSnapshot)) {
+            $this->submitPage(file_get_contents(ViewStorage::$lastSavedSnapshot), $uri, 'GET');
+        }
 
         return $response;
     }
