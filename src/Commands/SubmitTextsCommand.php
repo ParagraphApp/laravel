@@ -45,6 +45,7 @@ class SubmitTextsCommand extends Command
     protected $ignoredFolders = ['vendor', 'storage', 'node_modules'];
 
     const PATH_OPTION_MANUAL = 'My template path is not in the list';
+    const PATH_OPTION_ALL = 'All of the above';
 
     /**
      * Create a new command instance.
@@ -70,6 +71,7 @@ class SubmitTextsCommand extends Command
         $langPath = $this->findPath('lang', 'language files');
 
         $texts = $this->parseLanguageFiles($langPath);
+
         $texts = $texts->reduce(function($carry, $file) {
             foreach ($file['texts'] as $key => $translation) {
                 $source = trim(str_replace(base_path(''), '', $file['path']), DIRECTORY_SEPARATOR);
@@ -251,29 +253,36 @@ class SubmitTextsCommand extends Command
             });
     }
 
-    protected function parseViewTemplates($path)
+    protected function parseViewTemplates($paths)
     {
-        if (! file_exists($path) || ! is_dir($path)) {
-            throw new FailedParsing("Path {$path} doesn't exist or isn't a folder");
+        if (! is_array($paths)) {
+            $paths = [$paths];
         }
 
-        $iterator = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($path));
         $views = collect([]);
 
-        foreach ($iterator as $file) {
-            if ($file->isDir() || ! preg_match('/\.blade\.php$/', $file->getPathname())) {
-                continue;
+        foreach ($paths as $path) {
+            if (! file_exists($path) || ! is_dir($path)) {
+                throw new FailedParsing("Path {$path} doesn't exist or isn't a folder");
             }
 
-            $key = str_replace($path, '', $file->getPathname());
-            $key = ltrim($key, '//');
-            $key = preg_replace('/\.blade\.php$/', '', $key);
-            $key = str_replace(DIRECTORY_SEPARATOR, '.', $key);
+            $iterator = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($path));
 
-            $views->push([
-                'key' => $key,
-                'path' => $file->getPathname()
-            ]);
+            foreach ($iterator as $file) {
+                if ($file->isDir() || ! preg_match('/\.blade\.php$/', $file->getPathname())) {
+                    continue;
+                }
+
+                $key = str_replace($path, '', $file->getPathname());
+                $key = ltrim($key, '//');
+                $key = preg_replace('/\.blade\.php$/', '', $key);
+                $key = str_replace(DIRECTORY_SEPARATOR, '.', $key);
+
+                $views->push([
+                    'key' => $key,
+                    'path' => $file->getPathname()
+                ]);
+            }
         }
 
         $this->line("Discovered {$views->count()} view templates");
@@ -281,39 +290,46 @@ class SubmitTextsCommand extends Command
         return $views;
     }
 
-    protected function parseLanguageFiles($path)
+    protected function parseLanguageFiles($paths)
     {
-        if (! file_exists($path) || ! is_dir($path)) {
-            throw new FailedParsing("Path {$path} doesn't exist or isn't a folder");
+        if (! is_array($paths)) {
+            $paths = [$paths];
         }
 
-        $iterator = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($path));
         $files = collect([]);
 
-        foreach ($iterator as $file) {
-            if ($file->isDir() || ! preg_match('/\.(?:php|json)$/', $file->getPathname())) {
-                continue;
+        foreach ($paths as $path) {
+            if (! file_exists($path) || ! is_dir($path)) {
+                throw new FailedParsing("Path {$path} doesn't exist or isn't a folder");
             }
 
-            $key = str_replace($path, '', $file->getPathname());
-            $key = ltrim($key, '//');
-            $key = preg_replace('/(?:\.php|\.json)$/', '', $key);
-            $elements = explode(DIRECTORY_SEPARATOR, $key, 2);
-            $locale = $elements[0];
-            $key = end($elements);
+            $iterator = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($path));
 
-            $texts = preg_match('/\.php$/', $file->getPathname()) ? require($file->getPathname()) : json_decode(file_get_contents($file->getPathname()), true);
+            foreach ($iterator as $file) {
+                if ($file->isDir() || ! preg_match('/\.(?:php|json)$/', $file->getPathname())) {
+                    continue;
+                }
 
-            if (! is_array($texts)) {
-                throw new FailedParsing("File {$file->getPathname()} doesn't return an array with texts");
+                $key = str_replace($path, '', $file->getPathname());
+                $key = ltrim($key, '//');
+                $key = preg_replace('/(?:\.php|\.json)$/', '', $key);
+                $elements = explode(DIRECTORY_SEPARATOR, $key, 2);
+                $locale = $elements[0];
+                $key = end($elements);
+
+                $texts = preg_match('/\.php$/', $file->getPathname()) ? require($file->getPathname()) : json_decode(file_get_contents($file->getPathname()), true);
+
+                if (! is_array($texts)) {
+                    throw new FailedParsing("File {$file->getPathname()} doesn't return an array with texts");
+                }
+
+                $files->push([
+                    'key' => $key,
+                    'locale' => $locale,
+                    'path' => $file->getPathname(),
+                    'texts' => $texts
+                ]);
             }
-
-            $files->push([
-                'key' => $key,
-                'locale' => $locale,
-                'path' => $file->getPathname(),
-                'texts' => $texts
-            ]);
         }
 
         $this->line("Discovered {$files->count()} language files with a total of {$files->pluck('texts')->flatten(1)->count()} texts");
@@ -346,16 +362,23 @@ class SubmitTextsCommand extends Command
             }
         }
 
+        $folders[] = $this::PATH_OPTION_ALL;
         $folders[] = $this::PATH_OPTION_MANUAL;
 
         $viewsPath = $this->choice(
             "Where should we look for {$noun}?",
             $folders,
-            0
+            0,
+            null,
+            true
         );
 
-        if ($viewsPath == $this::PATH_OPTION_MANUAL) {
+        if (in_array($this::PATH_OPTION_MANUAL, $viewsPath)) {
             return $this->ask("What's the correct path to the {$noun} folder?");
+        }
+
+        if (in_array($this::PATH_OPTION_ALL, $viewsPath)) {
+            return array_filter($folders, fn($option) => ! in_array($option, [$this::PATH_OPTION_ALL, $this::PATH_OPTION_MANUAL]));
         }
 
         return $viewsPath;
