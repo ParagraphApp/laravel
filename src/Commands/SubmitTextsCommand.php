@@ -315,7 +315,7 @@ class SubmitTextsCommand extends Command
                 $key = preg_replace('/(?:\.php|\.json)$/', '', $key);
                 $elements = explode(DIRECTORY_SEPARATOR, $key, 2);
                 $locale = $elements[0];
-                $key = end($elements);
+                $key = preg_match('/\.json$/', $file->getPathname()) ? null : end($elements);
 
                 $texts = preg_match('/\.php$/', $file->getPathname()) ? require($file->getPathname()) : json_decode(file_get_contents($file->getPathname()), true);
 
