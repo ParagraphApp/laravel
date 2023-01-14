@@ -49,6 +49,11 @@ class ProxyTranslator implements Translator {
         return $this->laravelTranslator->choice($key, $number, $replace, $locale);
     }
 
+    public function addNamespace($namespace, $hint)
+    {
+        $this->laravelTranslator->addNamespace($namespace, $hint);
+    }
+
     public function getLocale()
     {
         return $this->laravelTranslator->getLocale();
