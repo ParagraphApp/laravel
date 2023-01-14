@@ -63,11 +63,13 @@ class Reader {
             $this->mode = $this::MODE_DIRECTIVE;
         } else if (preg_match_all('/app\(\'translator\'\)->get\((.+?)(?=\))/', $this->source, $matches)) {
             $this->mode = $this::MODE_HELPER_FUNCTION;
-        } else if (preg_match_all('/p\((.+?)(?=\))/', $this->source, $matches)) {
+        } else if (preg_match_all('/p\((.+?)(?=\))/', $this->source, $matches) || preg_match_all('/__\((.+?)(?=\))/', $this->source, $matches)) {
             $this->mode = $this::MODE_HELPER_FUNCTION;
         }
 
-        if (is_null($this->mode)) return;
+        if (is_null($this->mode)) {
+            return;
+        }
 
         $index = $this->getCurrentLineIndex(count($matches[1]));
         if (! isset($matches[1][$index])) throw new FailedParsing("Unable to locate call #{$index}");
@@ -130,11 +132,12 @@ class Reader {
     {
         $this->stack = debug_backtrace();
         $currentFolder = dirname(__FILE__);
+
         $this->stack = array_filter($this->stack, function($call) use ($currentFolder) {
-            return isset($call['file']) && strpos($call['file'], $currentFolder) !== 0;
+            return isset($call['file']) && strpos($call['file'], dirname($currentFolder)) !== 0 && ! preg_match('/laravel\/framework/', $call['file']);
         });
 
-        array_shift($this->stack);
+	$this->stack = array_values($this->stack);
 
         if (preg_match('/ManagesTranslations\.php$/', $this->stack[0]['file'])) {
             array_shift($this->stack);
