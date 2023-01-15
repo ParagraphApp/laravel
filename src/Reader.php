@@ -171,7 +171,9 @@ class Reader {
         $prefix = "<!-- paragraph-begin " . json_encode($data) . " -->";
         $postfix = "<!-- paragraph-end -->";
 
-        return new Text($prefix . $this->input . $postfix);
+        $text = $this->text['compiled'] ?? $this->input;
+
+        return new Text($prefix . $text . $postfix);
     }
 
     /**
