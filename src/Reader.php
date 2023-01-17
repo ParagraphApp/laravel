@@ -137,7 +137,7 @@ class Reader {
             return isset($call['file']) && strpos($call['file'], dirname($currentFolder)) !== 0 && ! preg_match('/laravel\/framework/', $call['file']);
         });
 
-	$this->stack = array_values($this->stack);
+	    $this->stack = array_values($this->stack);
 
         if (preg_match('/ManagesTranslations\.php$/', $this->stack[0]['file'])) {
             array_shift($this->stack);
@@ -171,7 +171,7 @@ class Reader {
         $prefix = "<!-- paragraph-begin " . json_encode($data) . " -->";
         $postfix = "<!-- paragraph-end -->";
 
-        return new Text($prefix . $this->input . $postfix);
+        return new Text($prefix . ($this->text['compiled'] ?? $this->input) . $postfix);
     }
 
     /**

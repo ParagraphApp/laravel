@@ -2,6 +2,8 @@
 
 namespace Paragraph;
 
+use Illuminate\Support\Facades\Log;
+
 class Paragraph {
     protected static $composerEnabled = true;
 
@@ -11,10 +13,22 @@ class Paragraph {
 
     public static $endLine;
 
-    public static function enableReader()
+    public static $currentViewName;
+
+    public static function view()
+    {
+        return static::$currentViewName;
+    }
+
+    public static function enableReader($viewName = null)
     {
         static::$composerEnabled = false;
         static::$readerEnabled = true;
+
+        if ($viewName) {
+            static::$currentViewName = $viewName;
+            Log::info("Enabling Paragraph reader for {$viewName}");
+        }
     }
 
     public static function disableReader()
@@ -28,8 +42,12 @@ class Paragraph {
         return static::$composerEnabled;
     }
 
-    public static function isReaderEnabled()
+    public static function isReaderEnabled($viewName = null)
     {
+        if ($viewName && $viewName != static::$currentViewName) {
+            return false;
+        }
+
         return ! static::$composerEnabled && static::$readerEnabled;
     }
 

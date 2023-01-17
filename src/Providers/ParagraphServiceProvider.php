@@ -12,6 +12,7 @@ use Paragraph\Commands\ClearRenderedViewsCommand;
 use Paragraph\Commands\InitialiseCommand;
 use Paragraph\Commands\SubmitRenderedViewsCommand;
 use Paragraph\Hooks\ProcessViewIfNecessary;
+use Paragraph\Hooks\ViewFactoryWrapper;
 use Paragraph\Mailer;
 use Illuminate\Support\Facades\Blade;
 use Paragraph\Commands\DownloadTextsCommand;
@@ -21,6 +22,7 @@ use Paragraph\ProxyTranslator;
 use Paragraph\Paragraph;
 use Paragraph\Translator;
 use Paragraph\TranslatorContract;
+use Illuminate\Contracts\View\Factory as FactoryContract;
 
 class ParagraphServiceProvider extends ServiceProvider {
     public function boot()
@@ -70,6 +72,11 @@ class ParagraphServiceProvider extends ServiceProvider {
 
         $laravel = resolve('translator');
         $this->app->instance('translator', new ProxyTranslator($laravel));
+        $boundViewFactory = $this->app['view'];
+
+        if (! $boundViewFactory instanceof ViewFactoryWrapper) {
+            (new ViewServiceProvider($this->app))->register();
+        }
 
         View::composer('*', ProcessViewIfNecessary::class);
 

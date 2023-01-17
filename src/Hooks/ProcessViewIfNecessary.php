@@ -26,33 +26,7 @@ class ProcessViewIfNecessary {
             return;
         }
 
-        Paragraph::enableReader();
-
-        // Make a check - is this a markdown view?
-        if ($this->isAMarkdownView($view)) {
-            $markdown = resolve(Markdown::class);
-            $contents = $markdown->render($view->name(), $view->getData());
-        } else {
-            $contents = $view->render();
-        }
-
-        Paragraph::disableReader();
-
-        $this->views->save($view->name(), $contents);
-    }
-
-    /**
-     * @return bool
-     */
-    protected function isAMarkdownView(View $view)
-    {
-        $stack = debug_backtrace(1, 15);
-        $lastCall = array_filter($stack, function($call) {
-            return data_get($call, 'function') == 'buildMarkdownView';
-        });
-        $lastCall = array_pop($lastCall);
-
-        return ! empty($lastCall) && data_get($lastCall, 'object.markdown') == $view->name();
+        Paragraph::enableReader($view->name());
     }
 
     /**
