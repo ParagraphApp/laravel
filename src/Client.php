@@ -80,6 +80,23 @@ class Client {
 
     /**
      * @param $snapshot
+     * @param $type
+     * @param $name
+     * @param null $sequence
+     * @param null $state
+     * @param array $assets
+     * @return bool
+     */
+    public function submitPage($snapshot, $type = null, $name = null, $sequence = null, $state = null, $assets = [])
+    {
+        $response = $this->client->post("{$this->projectId}/pages", [
+            'json' => array_filter(compact('snapshot', 'type', 'name', 'sequence', 'state', 'assets'), fn($v) => ! is_null($v))
+        ]);
+
+        return true;
+    }
+    /**
+     * @param $snapshot
      * @param null $context
      * @param $type
      * @param $name
@@ -87,12 +104,12 @@ class Client {
      * @param null $state
      * @return bool
      */
-    public function submitPage($snapshot, $context = null, $type = null, $name = null, $sequence = null, $state = null)
+    public function submitAsset($path, $contents)
     {
-        $response = $this->client->post("{$this->projectId}/pages", [
-            'json' => array_filter(compact('snapshot', 'context', 'type', 'name', 'sequence', 'state'), fn($v) => ! is_null($v))
+        $response = $this->client->post("{$this->projectId}/assets", [
+            'json' => compact('path', 'contents')
         ]);
 
-        return true;
+        return json_decode($response->getBody(), true)['id'];
     }
 }
