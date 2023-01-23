@@ -53,7 +53,6 @@ class SubmitRenderedViewsCommand extends Command
         foreach ($views as $filename)
         {
             $this->line("Submitting {$filename}");
-
             $html = file_get_contents($filename);
             $css = $this->findCss($html);
             $assets = collect([]);

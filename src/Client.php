@@ -80,8 +80,8 @@ class Client {
 
     /**
      * @param $snapshot
-     * @param $type
-     * @param $name
+     * @param null $type
+     * @param null $name
      * @param null $sequence
      * @param null $state
      * @param array $assets
@@ -95,6 +95,7 @@ class Client {
 
         return true;
     }
+
     /**
      * @param $snapshot
      * @param null $context

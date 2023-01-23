@@ -131,22 +131,23 @@ class Reader {
     protected function findActualFile()
     {
         $this->stack = debug_backtrace();
+
         $currentFolder = dirname(__FILE__);
 
-        $this->stack = array_filter($this->stack, function($call) use ($currentFolder) {
+        $stack = array_filter($this->stack, function($call) use ($currentFolder) {
             return isset($call['file']) && strpos($call['file'], dirname($currentFolder)) !== 0 && ! preg_match('/laravel\/framework/', $call['file']);
         });
 
-	    $this->stack = array_values($this->stack);
+	    $stack = array_values($stack);
 
-        if (preg_match('/ManagesTranslations\.php$/', $this->stack[0]['file'])) {
-            array_shift($this->stack);
+        if (preg_match('/ManagesTranslations\.php$/', $stack[0]['file'])) {
+            array_shift($stack);
         }
 
-        $this->setFile($this->stack[0]['file']);
+        $this->setFile($stack[0]['file']);
 
         if (! Paragraph::$startLine) {
-            Paragraph::$startLine = $this->stack[0]['line'];
+            Paragraph::$startLine = $stack[0]['line'];
         }
     }
 

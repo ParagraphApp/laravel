@@ -3,7 +3,6 @@
 namespace Paragraph\Hooks;
 
 use Illuminate\Contracts\View\View;
-use Illuminate\Mail\Markdown;
 use Illuminate\View\Factory;
 use Paragraph\Paragraph;
 use Paragraph\ProxyTranslator;

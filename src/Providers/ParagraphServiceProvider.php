@@ -3,6 +3,7 @@
 namespace Paragraph\Providers;
 
 use Illuminate\Contracts\Support\DeferrableProvider;
+use Illuminate\Mail\Markdown;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Translation\TranslationServiceProvider;
@@ -11,6 +12,7 @@ use Paragraph\Client;
 use Paragraph\Commands\ClearRenderedViewsCommand;
 use Paragraph\Commands\InitialiseCommand;
 use Paragraph\Commands\SubmitRenderedViewsCommand;
+use Paragraph\Hooks\MarkdownWrapper;
 use Paragraph\Hooks\ProcessViewIfNecessary;
 use Paragraph\Hooks\ViewFactoryWrapper;
 use Paragraph\Mailer;
@@ -65,6 +67,15 @@ class ParagraphServiceProvider extends ServiceProvider {
 
         $this->app->singleton(Client::class, function ($app) {
             return new Client(config('paragraph.project_id'));
+        });
+
+        $this->app->singleton(Markdown::class, function ($app) {
+            $config = $app->make('config');
+
+            return new MarkdownWrapper($app->make('view'), [
+                'theme' => $config->get('mail.markdown.theme', 'default'),
+                'paths' => $config->get('mail.markdown.paths', []),
+            ]);
         });
 
         $provider = new TranslationServiceProvider($this->app);
