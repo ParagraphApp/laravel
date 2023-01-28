@@ -91,11 +91,11 @@ class SubmitRenderedViewsCommand extends Command
 
     protected function findCss($html)
     {
-        preg_match_all('/<link.+href="(?<css>[^"]+)"/', $html, $matches);
+        preg_match_all('/<link.+?href="(?<css>[^"]+?\.css)/', $html, $matches);
 
         return collect($matches['css'] ?? [])
             ->map(function($link) { return parse_url($link); })
-            ->filter(function($element) { return empty($element['host']) && ! empty($element['path']); })
+            ->filter(function($element) { return ! empty($element['path']); })
             ->map(function($element) { return $element['path']; })
             ->toArray();
     }
