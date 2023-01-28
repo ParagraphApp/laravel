@@ -2,8 +2,6 @@
 
 namespace Paragraph;
 
-use Illuminate\Support\Facades\Log;
-
 class Paragraph {
     protected static $composerEnabled = true;
 
@@ -27,7 +25,6 @@ class Paragraph {
 
         if ($viewName) {
             static::$currentViewName = $viewName;
-            Log::info("Enabling Paragraph reader for {$viewName}");
         }
     }
 
