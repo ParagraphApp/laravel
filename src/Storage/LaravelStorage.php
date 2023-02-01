@@ -9,7 +9,7 @@ class LaravelStorage implements StorageContract {
      */
     public static function loadTranslations($locale = 'default')
     {
-        $path = storage_path("paragraph_{$locale}.json");
+        $path = resource_path("paragraph_{$locale}.json");
 
         if (! file_exists($path) && ! $path = static::fallback($locale)) return [];
 
@@ -22,14 +22,14 @@ class LaravelStorage implements StorageContract {
      */
     protected static function fallback($locale)
     {
-        $files = scandir(dirname(storage_path("paragraph.json")));
+        $files = scandir(dirname(resource_path("paragraph.json")));
 
         $matches = array_filter($files, function($path) use ($locale) {
             return preg_match('/^paragraph_'.$locale.'_[A-Z]{2}\.json$/', basename($path));
         });
 
         if (count($matches)) {
-            return storage_path(array_values($matches)[0]);
+            return resource_path(array_values($matches)[0]);
         }
     }
 
@@ -48,7 +48,7 @@ class LaravelStorage implements StorageContract {
         }
 
         foreach ($locales as $key => $texts) {
-            file_put_contents(storage_path("paragraph_{$key}.json"), json_encode($texts));
+            file_put_contents(resource_path("paragraph_{$key}.json"), json_encode($texts));
         }
     }
 }
